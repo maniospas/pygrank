@@ -15,10 +15,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.15
         id: cuda-toolkit
         with:
-          cuda: '11.7.0'
+          cuda: '12.1.0'
+      - run: nvcc -V
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -31,8 +32,8 @@ jobs:
           pip install sparse_dot_mkl
           pip install wget
           pip install tensorflow
-          pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
-          pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-1.13.0+cu117.html
+          pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
+          pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-1.13.0+cu121.html
           pip install pytest
           pip install pytest-cov
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
