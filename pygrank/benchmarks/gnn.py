@@ -87,12 +87,12 @@ def _gnn_train_tf(
     remaining_patience = patience
     for epoch in range(epochs):
         with tf.GradientTape() as tape:
-            predictions = model(features, graph, training=True)
+            predictions = model(features, graph=graph, training=True)
             loss = _gnn_cross_entropy_tf(labels, predictions, training)
             loss = loss + tf.reduce_sum(model.losses)
         gradients = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-        predictions = model(features, graph, training=False)
+        predictions = model(features, graph=graph, training=False)
         loss = _gnn_cross_entropy_tf(labels, predictions, validation)
         remaining_patience -= 1
         if loss < best_loss:

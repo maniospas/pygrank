@@ -55,7 +55,7 @@ def test_gnn_errors():
         epochs=300,
         patience=2,
     )
-    predictions = model(features, graph)
+    predictions = model(features, graph=graph)
     pg.load_backend("numpy")
     with pytest.raises(Exception):
         pg.gnn_accuracy(labels, predictions, test)
@@ -116,7 +116,7 @@ def test_appnp_tf():
             epochs=50,
         )
         assert (
-            float(pg.gnn_accuracy(labels, model(features, graph), test)) == 1.0
+            float(pg.gnn_accuracy(labels, model(features, graph=graph), test)) == 1.0
         )  # dataset is super-easy to predict
 
 
