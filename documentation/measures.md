@@ -248,7 +248,7 @@ Args:
 
 ### <kbd>Supervised</kbd> L1
 
-Computes the L1 norm on the difference between scores and known scores. The constructor initializes the supervised measure with desired graph signal outcomes. 
+Computes the mean absolute error between scores and known scores. The constructor initializes the supervised measure with desired graph signal outcomes. 
 
 Args: 
  * *known_scores:* The desired graph signal outcomes. 
@@ -312,7 +312,7 @@ Args:
 
 ### <kbd>Supervised</kbd> MaxDifference
 
-Computes the maximum absolute error between scores and known scores. The constructor initializes the supervised measure with desired graph signal outcomes. 
+Computes the mean absolute error between scores and known scores. The constructor initializes the supervised measure with desired graph signal outcomes. 
 
 Args: 
  * *known_scores:* The desired graph signal outcomes. 

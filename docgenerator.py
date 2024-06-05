@@ -166,7 +166,7 @@ def generate_filter_docs():
 
     preprocessor_descriptions = [
         format(pygrank.preprocessor.__doc__),
-        format(pygrank.algorithms.filters.ConvergenceManager.__init__.__doc__),
+        format(pygrank.algorithms.ConvergenceManager.__init__.__doc__),
     ]
 
     for abstr in base_descriptions:
