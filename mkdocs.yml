@@ -1,0 +1,98 @@
+site_name: pygrank
+site_author: Emmanouil (Manios) Krasanakis
+repo_url: https://github.com/MKLab-ITI/pygrank
+copyright: Copyright &copy; 2024 Emmanouil Krasanakis
+
+nav:
+    - Home: 'index.md'
+    - Basics:
+        - 'basics/about.md'
+        - 'basics/signals.md'
+        - 'basics/filters.md'
+        - 'basics/postprocessors.md'
+        - 'basics/evaluation.md'
+    - Advanced features:
+        - 'advanced/autotuning.md'
+        - 'advanced/backends.md'
+        - 'advanced/convergence.md'
+        - 'advanced/graph_preprocessing.md'
+    - Applications:
+        - 'advanced/quickstart.md'
+        - 'advanced/community.md'
+        - 'advanced/gnn.md'
+    - For professionals:
+        - 'tips/citations.md'
+        - 'tips/big.md'
+    - API:
+        - 'generated/graph_filters.md'
+        - 'generated/postprocessors.md'
+        - 'generated/tuners.md'
+        - 'generated/measures.md'
+        - 'generated/datasets.md'
+
+markdown_extensions:
+  - admonition
+  - mkautodoc
+  - codehilite
+  - attr_list
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.smartsymbols
+  - pymdownx.inlinehilite
+  - pymdownx.extra
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:pymdownx.emoji.gemoji
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+
+theme:
+  name: material
+  logo: logo.ico
+  favicon: logo.ico
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.instant
+    - navigation.instant.loading_indicator
+    - navigation.scroll
+    - content.tabs.link
+    - search.suggest
+    - toc.integrate
+    - toc.follow
+    - navigation.top
+    #- navigation.footer
+
+extra_css:
+  - theme_extend.css
+
+extra_javascript:
+  - mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  - mkdocstrings
+
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/maniospas
+      name: Emmanouil (Manios) Krasanakis on GitHub

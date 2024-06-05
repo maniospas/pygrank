@@ -1,0 +1,99 @@
+.gemoji {
+  height: 1em;
+  width: 1em;
+  vertical-align: -0.15em;
+}
+
+.doc {
+  padding-left: 20px;
+  margin-bottom: 30px;
+  margin-top: -15px;
+  border-left: 5px solid rgba(230, 230, 230);
+}
+
+.explain {
+  margin-top: 10px;
+}
+
+.wy-side-nav-search {
+    background-color: #d2d2d2; /* Replace with your desired color code */
+}
+
+.parameters {
+    background-color: #D0D0D0;
+    border: none;
+    padding: 0 4px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    color: #007777;
+    border-radius: 6px;
+    margin-top: 6px;
+}
+
+.component {
+    background-color: #CC5555;
+    border: none;
+    color: white;
+    padding: 2px 10px;
+    text-align: left;
+    text-decoration: none;
+    display: inline-block;
+    width: 100%;
+    font-size: 24px;
+    margin: 0 2px 0 2px;
+    border-radius: 2px;
+}
+
+
+.toggle-button {
+    background-color: #808080;
+    border: none;
+    color: white;
+    padding: 2px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px 0 2px;
+    cursor: pointer;
+    border-radius: 12px;
+}
+
+.toggle-reveal {
+    background-color: #808080;
+    border: none;
+    color: white;
+    padding: 2px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 0;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.toggle-reveal:hover {
+    background-color: #666666; /* Change background color on hover */
+    color: #ffffff; /* Change text color on hover */
+}
+
+.toggle-button:hover {
+    background-color: #666666; /* Change background color on hover */
+    color: #ffffff; /* Change text color on hover */
+}
+
+.active {
+    background-color: #1e1e1e; /* Change background color on hover */
+    color: #ffffff; /* Change text color on hover */
+}
+
+.active:hover {
+    background-color: #1e1e1e; /* Change background color on hover */
+    color: #ffffff; /* Change text color on hover */
+}
+
+.code-block {
+    margin-top: -10px;
+}

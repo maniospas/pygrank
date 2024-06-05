@@ -1,19 +1,10 @@
-<center><h1>:hammer_and_wrench: Functional Interface</h1></center> 
+# Functional Interface
 
-This functional interface builds upon concepts presented in the
-[documentation](documentation.md) to simplify code written with
-the *pygrank* library.
-
-## Table of Contents
-1. [Chaining Postprocessors](#chaining-postprocessors)
-2. [Chaining Personalization Preprocessing](#chaining-personalization-preprocessing)
-3. [Graph Signals in Chains](#graph-signals-in-chains)
-4. [Customizing Base Algorithms](#customizing-base-algorithms)
-5. [Algorithm Combinations](#algorithm-combinations)
-
+This functional interface simplifies code written with *pygrank*.
 
 
 ## Chaining Postprocessors
+
 The core methodology of building node ranking algorithms is by
 selecting a starting base algorithm (e.g. a graph filter) and
 passing these through various postprocessors to define more
@@ -48,6 +39,7 @@ postprocessor constructors can in principle be defined without
 a base algorithm, so the chain assigns those.
 
 ## Chaining Personalization Preprocessing
+
 The same interface can be used interchangeably to assign values
 to the `personalization_transform` argument of graph filters, 
 which applies a node ranking algorithm to personalization graph signal
@@ -66,6 +58,7 @@ wtf_stochastic = pg.PageRank() >> pg.SeedOversampling("neighbors") >> pg.PageRan
 ```
 
 ## Graph Signals in Chains
+
 There are two ways to enter graph signals in chains: 
 a) by chaining algorithm calls with graph signal inputs,
 and b) by chaining a call to final node ranking algorithms
@@ -115,6 +108,7 @@ instead of `algorithm(signal)` after algorithms have been defined.
 
 
 ## Customizing Base Algorithms
+
 To simplify graph filter chains, we final provide the ability to
 define convergence managers, preprocessors and the quotient strategy
 of graph filters with an operator instead of parts of the constructor.

@@ -1,4 +1,4 @@
-# :zap: Showcase
+# Demo
 
 As a quick start, let us construct a graph 
 and a set of nodes. The graph's class can be
@@ -33,7 +33,7 @@ import pygrank as pg
 
 For instructional purposes,
 we experiment with (personalized) *PageRank*. 
-Instantiation of this and more filters is described [here](documentation/graph_filters.md),
+Instantiation of this and more filters is described [here](../generated/graph_filters.md),
 and can be accessed from the top-level import.
 We also set the default values of some parameters: the graph diffusion
 rate *alpha* required by this particular filter, a numerical tolerance *tol* at the
@@ -60,7 +60,7 @@ print(ranks["B"], ranks["D"], ranks["E"])
 We alter this outcome so that it outputs node order, 
 where higher node scores are assigned lower order,
 by wrapping a postprocessor around the base algorithm. 
-You can find more postprocessors [here](documentation/postprocessors.md),
+You can find more postprocessors [here](../generated/postprocessors.md),
 including ones to make scores fairness-aware.
 
 ```python
@@ -121,5 +121,6 @@ command:
 print(tuned_ranker.cite())
 # graph filter \cite{ortega2018graph} with dictionary-based hashing \cite{krasanakis2022pygrank}, max normalization and parameters tuned \cite{krasanakis2022autogf} to optimize AUC while withholding 0.100 of nodes for validation
 ```
+
 Bibtex entries corresponding to the citations can be found 
-[here](documentation/citations.md).
+[here](../tips/citations.md).

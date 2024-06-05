@@ -1,21 +1,26 @@
-<center><h1>:bulb: Big Data FAQ</h1></center>
+# Big Graphs
+
 This documents provides a FAQ on how to handle big graphs, with millions
 or more of edges.
 
 ### Which backend to use?
+
 Use *numpy* (the default backend). It's the most well-tested
 and memory efficient.
 
 ### Which algorithm to use?
+
 `pygrank` algorithms are split into graph filters and postprocessors
 to augment their outcome. Here we touch on graph filters. 
 If you don't know anything else about your data, the following
 graph filter is recommended:
+
 ```python
 import pygrank as pg
 
 algorithm = pg.PageRank(alpha=0.9, tol=1.E-9, max_iters=1000)
 ```
+
 For compatibility with `networkx` and other historical practices, 
 these are not the default parameters values.
 However, they tend to work well in big graphs. A little explanation on 
@@ -39,6 +44,7 @@ make sure that you run algorithms
 with computational limits within allocated budget.
 
 ### My communities do not comprise enough members.
+
 Try to increase the receptive field of node ranking algorithms,
 for example by increasing *alpha* in pagerank. If you have increased
 the receptive field but require more expansions try applying
@@ -48,6 +54,7 @@ algorithms.
 
 
 ### My graph is already a scipy sparse matrix.
+
 Note that node ranking algorithms and graph signals
 typically require graphs. However, sometimes
 it is more computationally efficient to construct

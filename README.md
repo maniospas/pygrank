@@ -1,4 +1,4 @@
-![pygrank](documentation/pygrank.png)
+![pygrank](docs/pygrank.png)
 
 Fast node ranking algorithms on large graphs.
 <br>
@@ -15,11 +15,9 @@ Fast node ranking algorithms on large graphs.
 ![coverage](https://github.com/MKLab-ITI/pygrank/actions/workflows/tests.yml/coverage.svg)
 [![Downloads](https://static.pepy.tech/personalized-badge/pygrank?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/pygrank)
 
-# :rocket: New features (after 0.2.10)
-* More [datasets](documentation/datasets.md)
-
 # :hammer_and_wrench: Installation
 `pygrank` works with Python 3.9 or later. The latest version can be installed with pip per:
+
 ```
 pip install --upgrade pygrank
 ```
@@ -69,7 +67,7 @@ assume graph immutability, i.e., that it will not change in the future.
 When this assumption is declared, the preprocessor hashes a lot of
 computations to considerably speed up experiments or autotuning.
 
-The snippet uses the [chain operator](documentation/functional.md)
+The snippet uses the [chain operator](docs/basics/functional.md)
 to wrap node ranking algorithms by various kinds of postprocessors.
 You can also put algorithms into each other's constructors
 if you are not a fan of functional programming.
@@ -90,8 +88,8 @@ Finally, the snippet prints a recommended citation for the algorithm.
 
 ### More examples
 
-[Showcase](documentation/showcase.md) <br>
-[Big data FAQ](documentation/tips.md) <br>
+[Showcase](docs/advanced/quickstart.md) <br>
+[Big data FAQ](docs/tips/big.md) <br>
 [Downstream tasks](https://github.com/maniospas/pygrank-downstream) <br>
 
 
@@ -121,27 +119,13 @@ Some of the library's advantages are:
 1. **Compatibility** with [networkx](https://github.com/networkx/networkx), plain [numpy](https://numpy.org), [tensorflow](https://www.tensorflow.org), [pytorch](https://pytorch.org), [matvec](https://github.com/maniospas/matvec).
 2. **Datacentric** interfaces that do not require transformations to identifiers.
 3. **Large** graph support with sparse data structures and scalable algorithms.
-4. **Seamless** pipelines (e.g., operation [chains](documentation/functional.md)), from graph preprocessing up to benchmarking and evaluation.
+4. **Seamless** pipelines (e.g., operation [chains](docs/basics/functional.md)), from graph preprocessing up to benchmarking and evaluation.
 5. **Modular** components to be combined and a functional chain interface for complex combinations.
 6. **Fast** running time with highly optimized operations
 
 # :link: Material
 [Tutorials & Documentation](documentation/documentation.md) <br>
-[Functional Interface](documentation/functional.md)
-
-**Quick links**<br>
-[Measures](documentation/measures.md) <br>
-[Graph Filters](documentation/graph_filters.md) <br>
-[Postprocessors](documentation/postprocessors.md) <br>
-[Tuners](documentation/tuners.md) <br>
-[Downloadable Datasets](documentation/datasets.md) <br>
-
-**Backend resources**<br>
-[numpy](https://numpy.org/) (default, no additional installation) <br>
-[tensorflow](https://www.tensorflow.org/install) <br>
-[pytorch](https://pytorch.org/get-started/locally) <br>
-[torch_sparse](https://github.com/rusty1s/pytorch_sparse) <br>
-[matvec](https://github.com/maniospas/matvec)
+[Functional Interface](docs/basics/functional.md)
 
 # :fire: Features
 * Graph filters
@@ -174,4 +158,4 @@ If `pygrank` has been useful in your research and you would like to cite it in a
 }
 ```
 To publish research that makes use of provided methods,
-please cite all [relevant publications](documentation/citations.md).
+please cite all [relevant publications](docs/tips/citations.md).
