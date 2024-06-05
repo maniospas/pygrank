@@ -1,4 +1,4 @@
-from scipy.sparse import coo_array
+from scipy.sparse import coo_matrix
 
 
 class Graph:
@@ -10,7 +10,7 @@ class Graph:
         self._adj = None
         self._degrees = None
         self._masked_out = None
-        self._non_maksed_edge_num = None
+        self._non_masked_edge_num = None
 
     def add_node(self, node):
         if node not in self.node_map:
@@ -18,7 +18,7 @@ class Graph:
         return self.node_map[node]
 
     def remove_edge(self, u, v):
-        self._non_maksed_edge_num = None
+        self._non_masked_edge_num = None
         if self._adj is not None:
             if u in self._adj and v in self._adj[u]:
                 self._adj[u].remove(v)
@@ -49,7 +49,7 @@ class Graph:
                 self._degrees[v] = len(self._adj[v])
         u = self.add_node(u)
         v = self.add_node(v)
-        self._non_maksed_edge_num = None
+        self._non_masked_edge_num = None
         if self._masked_out is not None:
             if u in self._masked_out and v in self._masked_out[u]:
                 self._masked_out[u].remove(v)
@@ -72,10 +72,22 @@ class Graph:
 
     def to_scipy_sparse_array(self):
         if self._masked_out:
-            return coo_array(([0 if u in self._masked_out and v in self._masked_out[u] else 1 for u, v in zip(self.edge_row, self.edge_col)], (self.edge_row, self.edge_col)),
-                              shape=(len(self.node_map), len(self.node_map)), dtype=float).tocsr()#.asformat("csr")
-        return coo_array(([1.]*len(self.edge_row), (self.edge_row, self.edge_col)),
-                          shape=(len(self.node_map), len(self.node_map)), dtype=float).tocsr()#.asformat("csr")
+            return coo_matrix(
+                (
+                    [
+                        0 if u in self._masked_out and v in self._masked_out[u] else 1
+                        for u, v in zip(self.edge_row, self.edge_col)
+                    ],
+                    (self.edge_row, self.edge_col),
+                ),
+                shape=(len(self.node_map), len(self.node_map)),
+                dtype=float,
+            )  # .asformat("csr")
+        return coo_matrix(
+            ([1.0] * len(self.edge_row), (self.edge_row, self.edge_col)),
+            shape=(len(self.node_map), len(self.node_map)),
+            dtype=float,
+        )  # .asformat("csr")
 
     def __len__(self):
         return len(self.node_map)
@@ -85,9 +97,12 @@ class Graph:
 
     def number_of_edges(self):
         if self._masked_out is not None:
-            if self._non_maksed_edge_num is None:
-                self._non_maksed_edge_num = sum(0 if u in self._masked_out and v in self._masked_out[u] else 1 for u, v in zip(self.edge_row, self.edge_col))
-            ret = self._non_maksed_edge_num
+            if self._non_masked_edge_num is None:
+                self._non_masked_edge_num = sum(
+                    0 if u in self._masked_out and v in self._masked_out[u] else 1
+                    for u, v in zip(self.edge_row, self.edge_col)
+                )
+            ret = self._non_masked_edge_num
         else:
             ret = len(self.edge_row)
         return ret if self.directed else ret / 2
@@ -135,7 +150,9 @@ class Graph:
                     if u not in self._adj:
                         self._adj[u] = set()
                     self._adj[u].add(v)
-            self._degrees = {u: len(self._adj[u]) if u in self._adj else 0 for u in self.node_map}
+            self._degrees = {
+                u: len(self._adj[u]) if u in self._adj else 0 for u in self.node_map
+            }
 
     def has_edge(self, u, v):
         self._create_adjacency()

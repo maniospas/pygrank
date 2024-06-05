@@ -4,15 +4,22 @@ from .test_core import supported_backends
 
 
 def test_split():
-    data = {"community1": ["A", "B", "C", "D"], "community2": ["B", "E", "F", "G", "H", "I"]}
+    data = {
+        "community1": ["A", "B", "C", "D"],
+        "community2": ["B", "E", "F", "G", "H", "I"],
+    }
     training, test = pg.split(data, 1)
     assert training == test
     training, test = pg.split(data, 0.5)
     assert len(training["community2"]) == 3
     assert len(training["community1"]) == 2
     assert len(test["community2"]) == 3
-    assert len(set(training["community1"])-set(test["community1"])) == len(training["community1"])
-    assert len(set(training["community2"])-set(test["community2"])) == len(training["community2"])
+    assert len(set(training["community1"]) - set(test["community1"])) == len(
+        training["community1"]
+    )
+    assert len(set(training["community2"]) - set(test["community2"])) == len(
+        training["community2"]
+    )
     training, test = pg.split(data, 2)
     assert len(training["community2"]) == 2
     assert len(test["community1"]) == 2
@@ -36,9 +43,9 @@ def test_auc_ndcg_compliance():
         NDCG2 = float(pg.NDCG(test, exclude=training)(scores2))
         assert (AUC1 < AUC2) == (NDCG1 < NDCG2)
         with pytest.raises(Exception):
-            pg.AUC(test, exclude=test, k=len(graph)+1)(scores2)
+            pg.AUC(test, exclude=test, k=len(graph) + 1)(scores2)
         with pytest.raises(Exception):
-            pg.NDCG(test, exclude=training, k=len(graph)+1)(scores2)
+            pg.NDCG(test, exclude=training, k=len(graph) + 1)(scores2)
 
 
 def test_edge_cases():
@@ -53,14 +60,19 @@ def test_edge_cases():
     with pytest.raises(Exception):
         pg.KLDivergence([0], exclude={"A": 1})([1])
     with pytest.raises(Exception):
-        pg.Conductance(next(pg.load_datasets_graph(["graph5"])), max_rank=0.5)([1, 1, 1, 1, 1])
+        pg.Conductance(next(pg.load_datasets_graph(["graph5"])), max_rank=0.5)(
+            [1, 1, 1, 1, 1]
+        )
     import networkx as nx
+
     for _ in supported_backends():
-        assert pg.Conductance(nx.Graph())([]) == float("inf")  # this is indeed correct in python
+        assert pg.Conductance(nx.Graph())([]) == float(
+            "inf"
+        )  # this is indeed correct in python
         assert pg.Density(nx.Graph())([]) == 0
         assert pg.Modularity(nx.Graph())([]) == 0
-        assert pg.KLDivergence([0,1,0])([0,1,0]) == 0
-        assert pg.MKLDivergence([0,1,0])([0,1,0]) == 0
+        assert pg.KLDivergence([0, 1, 0])([0, 1, 0]) == 0
+        assert pg.MKLDivergence([0, 1, 0])([0, 1, 0]) == 0
         assert pg.KLDivergence([0])([-1]) == 0
 
 
@@ -69,8 +81,12 @@ def test_strange_input_types():
     training, test = pg.split(group)
     for _ in supported_backends():
         scores = pg.PageRank()(graph, {v: 1 for v in training})
-        ndcg = pg.NDCG(pg.to_signal(scores, {v: 1 for v in test}), k=3)({v: scores[v] for v in scores})
-        ndcg_biased = pg.NDCG(pg.to_signal(scores, {v: 1 for v in test}), k=3)({v: scores[v] for v in test})
+        ndcg = pg.NDCG(pg.to_signal(scores, {v: 1 for v in test}), k=3)(
+            {v: scores[v] for v in scores}
+        )
+        ndcg_biased = pg.NDCG(pg.to_signal(scores, {v: 1 for v in test}), k=3)(
+            {v: scores[v] for v in test}
+        )
         assert ndcg < ndcg_biased
 
 
@@ -79,7 +95,9 @@ def test_correlation_compliance():
     # TODO: Make spearman and pearson correlation support tensorflow
     alg1 = pg.PageRank(alpha=0.5)
     alg2 = pg.PageRank(alpha=0.99)
-    pearson_ordinals = pg.PearsonCorrelation(pg.Ordinals(alg1)(graph))(pg.Ordinals(alg2)(graph))
+    pearson_ordinals = pg.PearsonCorrelation(pg.Ordinals(alg1)(graph))(
+        pg.Ordinals(alg2)(graph)
+    )
     spearman = pg.SpearmanCorrelation(alg1(graph))(alg2(graph))
     assert pearson_ordinals == spearman
 
@@ -105,7 +123,7 @@ def test_computations():
     for _ in supported_backends():
         assert pg.Accuracy([1, 2, 3])([1, 2, 3]) == 1
         assert pg.Mabs([3, 1, 1])([2, 0, 2]) == 1
-        assert pg.CrossEntropy([1, 1, 1])([1, 1, 1]) < 1.E-12
+        assert pg.CrossEntropy([1, 1, 1])([1, 1, 1]) < 1.0e-12
         assert float(pg.Cos([2, 0, 1])([2, 0, 1])) == 1
         assert float(pg.Cos([2, 0, 1])([-2, 0, -1])) == -1
         assert float(pg.Cos([0, 0, 0])([0, 0, 0])) == 0
@@ -113,9 +131,15 @@ def test_computations():
         assert float(pg.TPR([1, 0, 0, 0])([1, 1, 0, 0])) == 1
         assert float(pg.PPV([1, 0, 0, 0])([1, 1, 0, 0])) == 0.5
         assert float(pg.TNR([1, 0, 0, 1])([1, 1, 0, 0])) == 0.5
-        assert float(pg.Euclidean([0, 0, 0, 1])([1, 1, 0, 0])) < float(pg.Euclidean([0, 0, 0, 1])([1, 1, 1, 0]))
-        assert float(pg.L1([0, 0, 0, 1])([1, 1, 0, 0])) < float(pg.L1([0, 0, 0, 1])([1, 1, 1, 0]))
-        assert float(pg.L2([0, 0, 0, 1])([1, 1, 0, 0])) < float(pg.L2([0, 0, 0, 1])([1, 1, 1, 0]))
+        assert float(pg.Euclidean([0, 0, 0, 1])([1, 1, 0, 0])) < float(
+            pg.Euclidean([0, 0, 0, 1])([1, 1, 1, 0])
+        )
+        assert float(pg.L1([0, 0, 0, 1])([1, 1, 0, 0])) < float(
+            pg.L1([0, 0, 0, 1])([1, 1, 1, 0])
+        )
+        assert float(pg.L2([0, 0, 0, 1])([1, 1, 0, 0])) < float(
+            pg.L2([0, 0, 0, 1])([1, 1, 1, 0])
+        )
 
 
 def test_aggregated():
@@ -124,19 +148,91 @@ def test_aggregated():
     y3 = [1, 1, 0]
     for _ in supported_backends():
         # TODO: investigate why not exactly the same always (numerical precision should be lower for numpy)
-        epsilon = 1.E-6
-        assert abs(float(pg.GM().add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3)) - 0.45**0.5) < epsilon
-        assert abs(float(pg.AM().add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3)) - 0.7) < epsilon
-        assert abs(float(pg.Disparity().add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3))-0.4) < epsilon
-        assert abs(float(pg.Disparity().add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3))
-                   + float(pg.Parity().add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3)-1)) < epsilon
+        epsilon = 1.0e-6
+        assert (
+            abs(
+                float(
+                    pg.GM()
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                )
+                - 0.45**0.5
+            )
+            < epsilon
+        )
+        assert (
+            abs(
+                float(
+                    pg.AM()
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                )
+                - 0.7
+            )
+            < epsilon
+        )
+        assert (
+            abs(
+                float(
+                    pg.Disparity()
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                )
+                - 0.4
+            )
+            < epsilon
+        )
+        assert (
+            abs(
+                float(
+                    pg.Disparity()
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                )
+                + float(
+                    pg.Parity()
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                    - 1
+                )
+            )
+            < epsilon
+        )
         # the following should have low precision due to the approximation of the hinge loss
-        assert abs(float(pg.GM(differentiable=True).add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3)) - 0.45**0.5) < 1.E-3
-        assert abs(float(pg.AM(differentiable=True).add(pg.AUC(y1), max_val=0.5).add(pg.AUC(y2), min_val=0.9).evaluate(y3)) - 0.7) < 1.E-3
+        assert (
+            abs(
+                float(
+                    pg.GM(differentiable=True)
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                )
+                - 0.45**0.5
+            )
+            < 1.0e-3
+        )
+        assert (
+            abs(
+                float(
+                    pg.AM(differentiable=True)
+                    .add(pg.AUC(y1), max_val=0.5)
+                    .add(pg.AUC(y2), min_val=0.9)
+                    .evaluate(y3)
+                )
+                - 0.7
+            )
+            < 1.0e-3
+        )
 
 
 def test_remove_edges():
     import networkx as nx
+
     graph = next(pg.load_datasets_graph(["graph5"], graph_api=nx))
     # TODO: make removing edges possible for fastgraph
     assert graph.has_edge("A", "B")

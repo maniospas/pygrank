@@ -15,17 +15,23 @@ def _select_path(path, dataset):
     return paths[0]
 
 
-def import_snap_format_dataset(dataset: str,
-                               path: Union[Iterable[str], str] = (os.path.join(os.path.expanduser('~'), '.pygrank/data'), ".", "data"),
-                               pair_file: str = 'pairs.txt',
-                               group_file: str = 'groups.txt',
-                               directed: bool = False,
-                               min_group_size: float = 0.01,
-                               min_group_id: int = 0,
-                               max_group_number: int = 20,
-                               prepend_all_nodes: bool = False,
-                               graph_api=nx,
-                               verbose=True):
+def import_snap_format_dataset(
+    dataset: str,
+    path: Union[Iterable[str], str] = (
+        os.path.join(os.path.expanduser("~"), ".pygrank/data"),
+        ".",
+        "data",
+    ),
+    pair_file: str = "pairs.txt",
+    group_file: str = "groups.txt",
+    directed: bool = False,
+    min_group_size: float = 0.01,
+    min_group_id: int = 0,
+    max_group_number: int = 20,
+    prepend_all_nodes: bool = False,
+    graph_api=nx,
+    verbose=True,
+):
     """
     Imports a dataset of the SNAP format.
     Args:
@@ -55,13 +61,21 @@ def import_snap_format_dataset(dataset: str,
     download_dataset(dataset, path=path)
     if verbose:
         utils.log(f"Loading {dataset} graph")
-    G = (graph_api.DiGraph() if hasattr(graph_api, "DiGraph") else graph_api.Graph(directed)) if directed else graph_api.Graph()
+    G = (
+        (
+            graph_api.DiGraph()
+            if hasattr(graph_api, "DiGraph")
+            else graph_api.Graph(directed)
+        )
+        if directed
+        else graph_api.Graph()
+    )
     groups = {}
     if prepend_all_nodes:
         groups[0] = list(G)
-    with open(path+'/'+dataset+'/'+pair_file, 'r', encoding='utf-8') as file:
+    with open(path + "/" + dataset + "/" + pair_file, "r", encoding="utf-8") as file:
         for line in file:
-            if len(line) != 0 and line[0] != '#':
+            if len(line) != 0 and line[0] != "#":
                 splt = line[:-1].split()
                 if len(splt) > 1:
                     G.add_edge(splt[0], splt[1])
@@ -69,18 +83,28 @@ def import_snap_format_dataset(dataset: str,
         min_group_size *= len(G)
     if verbose:
         utils.log(f"Loading {dataset} communities")
-    if group_file is not None and os.path.isfile(path+'/'+dataset+'/'+group_file):
-        with open(path+'/'+dataset+'/'+group_file, 'r', encoding='utf-8') as file:
+    if group_file is not None and os.path.isfile(
+        path + "/" + dataset + "/" + group_file
+    ):
+        with open(
+            path + "/" + dataset + "/" + group_file, "r", encoding="utf-8"
+        ) as file:
             for line in file:
-                if line[0] != '#':
-                    group = [item for item in line[:-1].split() if len(item) > 0 and item in G]
+                if line[0] != "#":
+                    group = [
+                        item
+                        for item in line[:-1].split()
+                        if len(item) > 0 and item in G
+                    ]
                     if len(group) >= min_group_size:
                         if min_group_id > 0:
                             min_group_id -= 1
                             continue
                         groups[len(groups)] = group
                         if verbose:
-                            utils.log(f"Loaded {dataset} communities {len(groups)}/{max_group_number}")
+                            utils.log(
+                                f"Loaded {dataset} communities {len(groups)}/{max_group_number}"
+                            )
                         if len(groups) >= max_group_number:
                             break
     if verbose:
@@ -88,28 +112,38 @@ def import_snap_format_dataset(dataset: str,
     return G, groups
 
 
-def _import_features(dataset: str,
-                     path: Union[Iterable[str], str] = (os.path.join(os.path.expanduser('~'), '.pygrank/data'), ".", "data"),
-                     feature_file: str = 'features.txt'):
+def _import_features(
+    dataset: str,
+    path: Union[Iterable[str], str] = (
+        os.path.join(os.path.expanduser("~"), ".pygrank/data"),
+        ".",
+        "data",
+    ),
+    feature_file: str = "features.txt",
+):
     path = _select_path(path, dataset)
     features = dict()
     pos_dict = dict()
     feature_length = 0
-    with open(path+'/'+dataset+'/'+feature_file, 'r', encoding='utf-8') as file:
+    with open(path + "/" + dataset + "/" + feature_file, "r", encoding="utf-8") as file:
         for line in file:
             line = line[:-1].split()
-            if "=" in line[1]:   # pragma: no cover
+            if "=" in line[1]:  # pragma: no cover
                 found = dict()
                 for feat in line[1:]:
                     feat = feat.split("=")
                     if feat[0] not in pos_dict:
                         pos_dict[feat[0]] = len(pos_dict)
                     found[pos_dict[feat[0]]] = float(feat[1])
-                features[line[0]] = [found.get(i, 0.) for i in range(max(found.keys()))]
+                features[line[0]] = [
+                    found.get(i, 0.0) for i in range(max(found.keys()))
+                ]
             else:
                 features[line[0]] = [float(val) for val in line[1:]]
             feature_length = max(feature_length, len(features[line[0]]))
-    features = {v: row+[0]*(feature_length-len(row)) for v, row in features.items()}
+    features = {
+        v: row + [0] * (feature_length - len(row)) for v, row in features.items()
+    }
     return features
 
 
@@ -123,23 +157,30 @@ def _preprocess_features(features: np.ndarray):
         The normalized feature matrix.
     """
 
-    #r_inv = np.asarray(np.sum(features, axis=0), np.float64)
-    #r_inv[r_inv != 0] = np.power(r_inv[r_inv != 0], -1)
-    #features = features * r_inv
-    #return features
+    # r_inv = np.asarray(np.sum(features, axis=0), np.float64)
+    # r_inv[r_inv != 0] = np.power(r_inv[r_inv != 0], -1)
+    # features = features * r_inv
+    # return features
     import scipy.sparse
+
     rowsum = np.array(features.sum(1))
     r_inv = np.power(rowsum, -1).flatten()
-    r_inv[np.isinf(r_inv)] = 0.
+    r_inv[np.isinf(r_inv)] = 0.0
     r_mat_inv = scipy.sparse.diags(r_inv)
     features = r_mat_inv.dot(features)
     return features
 
 
-def load_feature_dataset(dataset: str,
-                         path: Union[str, Iterable[str]] = (os.path.join(os.path.expanduser('~'), '.pygrank/data'), ".", "data"),
-                         groups_no_labels = False,
-                         **kwargs):
+def load_feature_dataset(
+    dataset: str,
+    path: Union[str, Iterable[str]] = (
+        os.path.join(os.path.expanduser("~"), ".pygrank/data"),
+        ".",
+        "data",
+    ),
+    groups_no_labels=False,
+    **kwargs,
+):
     """
     Imports a dataset comprising node features. Features and labels are organized as numpy matrix.
     This tries to automatically download the dataset first if not found.
@@ -159,9 +200,17 @@ def load_feature_dataset(dataset: str,
     graph, groups = call(import_snap_format_dataset, kwargs, [dataset, path])
     features = call(_import_features, kwargs, [dataset, path])
     feature_dims = len(features[list(features.keys())[0]])
-    features = np.array([features.get(v, [0] * feature_dims) for v in graph], dtype=np.float64)
+    features = np.array(
+        [features.get(v, [0] * feature_dims) for v in graph], dtype=np.float64
+    )
     features = _preprocess_features(features)
-    labels = groups if groups_no_labels else np.array([to_signal(graph, group).np for group in groups.values()], dtype=np.float64).transpose()
+    labels = (
+        groups
+        if groups_no_labels
+        else np.array(
+            [to_signal(graph, group).np for group in groups.values()], dtype=np.float64
+        ).transpose()
+    )
     return graph, features, labels
 
 
@@ -177,9 +226,11 @@ def load_datasets_multiple_communities(datasets: Union[Iterable[str], str], **kw
 def load_datasets_all_communities(datasets: Union[Iterable[str], str], **kwargs):
     if isinstance(datasets, str):
         datasets = [datasets]
-    for dataset, graph, groups in load_datasets_multiple_communities(datasets, **kwargs):
+    for dataset, graph, groups in load_datasets_multiple_communities(
+        datasets, **kwargs
+    ):
         for group_id, group in groups.items():
-            yield dataset+str(group_id), graph, group
+            yield dataset + str(group_id), graph, group
 
 
 def load_datasets_graph(datasets: Union[Iterable[str], str], **kwargs):
@@ -201,9 +252,7 @@ def load_datasets_graph(datasets: Union[Iterable[str], str], **kwargs):
     """
     datasets = [(dataset, 0) if len(dataset) != 2 else dataset for dataset in datasets]
     for dataset, group_id in datasets:
-        graph, _ = import_snap_format_dataset(dataset,
-                                              max_group_number=0,
-                                              **kwargs)
+        graph, _ = import_snap_format_dataset(dataset, max_group_number=0, **kwargs)
         yield graph
 
 
@@ -231,10 +280,12 @@ def load_datasets_one_community(datasets: Union[Iterable[str], str], **kwargs):
     last_loaded_dataset = None
     for dataset, group_id in datasets:
         if last_loaded_dataset != dataset:
-            max_group_number = 1 + max(group_id for dat, group_id in datasets if dat == dataset)
-            graph, groups = import_snap_format_dataset(dataset,
-                                                       max_group_number=max_group_number,
-                                                       **kwargs)
+            max_group_number = 1 + max(
+                group_id for dat, group_id in datasets if dat == dataset
+            )
+            graph, groups = import_snap_format_dataset(
+                dataset, max_group_number=max_group_number, **kwargs
+            )
             last_loaded_dataset = dataset
         if len(groups) > group_id:
             group = set(groups[group_id])

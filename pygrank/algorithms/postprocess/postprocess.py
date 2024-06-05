@@ -17,7 +17,9 @@ class Postprocessor(NodeRanking):
         return to_signal(ranks, call(self._transform, kwargs, [ranks]))
 
     def _transform(self, ranks: GraphSignal, **kwargs):
-        raise Exception("_transform method not implemented for the class "+self.__class__.__name__)
+        raise Exception(
+            "_transform method not implemented for the class " + self.__class__.__name__
+        )
 
     def _reference(self):
         return self.__class__.__name__
@@ -51,7 +53,7 @@ class Postprocessor(NodeRanking):
 
 
 class Tautology(Postprocessor):
-    """ Returns ranks as-are.
+    """Returns ranks as-are.
 
     Can be used as a baseline against which to compare other postprocessors or graph filters.
     """
@@ -68,10 +70,13 @@ class Tautology(Postprocessor):
     def transform(self, ranks: GraphSignal, *args, **kwargs) -> GraphSignal:
         return ranks
 
-    def rank(self,
-             graph: GraphSignalGraph = None,
-             personalization: GraphSignalData = None,
-             *args, **kwargs) -> GraphSignal:
+    def rank(
+        self,
+        graph: GraphSignalGraph = None,
+        personalization: GraphSignalData = None,
+        *args,
+        **kwargs,
+    ) -> GraphSignal:
         if self.ranker is not None:
             return self.ranker.rank(graph, personalization, *args, **kwargs)
         return to_signal(graph, personalization)
@@ -84,7 +89,7 @@ class MabsMaintain(Postprocessor):
     """Forces node ranking posteriors to have the same mean absolute value as prior inputs."""
 
     def __init__(self, ranker):
-        """ Initializes the postprocessor with a base ranker instance.
+        """Initializes the postprocessor with a base ranker instance.
 
         Args:
             ranker: Optional. The base ranker instance. If None (default), a Tautology() ranker is created.
@@ -104,12 +109,14 @@ class MabsMaintain(Postprocessor):
 
 
 class Normalize(Postprocessor):
-    """ Normalizes ranks by dividing with their maximal value."""
+    """Normalizes ranks by dividing with their maximal value."""
 
-    def __init__(self,
-                 ranker: Optional[Union[NodeRanking, str]] = None,
-                 method: Optional[Union[NodeRanking, str]] = "max"):
-        """ Initializes the class with a base ranker instance. Args are automatically filled in and
+    def __init__(
+        self,
+        ranker: Optional[Union[NodeRanking, str]] = None,
+        method: Optional[Union[NodeRanking, str]] = "max",
+    ):
+        """Initializes the class with a base ranker instance. Args are automatically filled in and
         re-ordered if at least one is provided.
 
         Args:
@@ -146,28 +153,28 @@ class Normalize(Postprocessor):
         elif self.method == "sum":
             max_rank = float(backend.sum(ranks.np))
         elif self.method == "L2":
-            max_rank = float(backend.sum(ranks.np**2))**0.5
+            max_rank = float(backend.sum(ranks.np**2)) ** 0.5
         else:
             raise Exception("Can only normalize towards max, sum, range, or L2")
         if min_rank == max_rank:
             return ranks
-        ret = (ranks.np-min_rank) / (max_rank-min_rank)
+        ret = (ranks.np - min_rank) / (max_rank - min_rank)
         return ret
 
     def _reference(self):
         if self.method == "range":
             return "[0,1] " + self.method + " normalization"
-        return self.method+" normalization"
+        return self.method + " normalization"
 
 
 class Ordinals(Postprocessor):
-    """ Converts ranking outcome to ordinal numbers.
+    """Converts ranking outcome to ordinal numbers.
 
     The highest rank is set to 1, the second highest to 2, etc.
     """
 
     def __init__(self, ranker=None):
-        """ Initializes the class with a base ranker instance.
+        """Initializes the class with a base ranker instance.
 
         Args:
             ranker: Optional. The base ranker instance. A Tautology() ranker is created if None (default) was specified.
@@ -187,7 +194,10 @@ class Ordinals(Postprocessor):
 
     def _transform(self, ranks: GraphSignal, **kwargs):
         ensure_used_args(kwargs)
-        return {v: order+1 for order, v in enumerate(sorted(ranks, key=ranks.get, reverse=True))}
+        return {
+            v: order + 1
+            for order, v in enumerate(sorted(ranks, key=ranks.get, reverse=True))
+        }
 
     def _reference(self):
         return "ordinal conversion"
@@ -196,10 +206,12 @@ class Ordinals(Postprocessor):
 class Transformer(Postprocessor):
     """Applies an element-by-element transformation on a graph signal based on a given expression."""
 
-    def __init__(self,
-                 ranker: Union[Optional[NodeRanking], Callable] = None,
-                 expr: Union[Optional[NodeRanking], Callable] = backend.exp):
-        """ Initializes the class with a base ranker instance. Args are automatically filled in and
+    def __init__(
+        self,
+        ranker: Union[Optional[NodeRanking], Callable] = None,
+        expr: Union[Optional[NodeRanking], Callable] = backend.exp,
+    ):
+        """Initializes the class with a base ranker instance. Args are automatically filled in and
         re-ordered if at least one is provided.
 
         Args:
@@ -231,15 +243,17 @@ class Transformer(Postprocessor):
             return {v: self.expr(ranks[v]) for v in ranks}
 
     def _reference(self):
-        return "element-by-element "+self.expr.__name__
+        return "element-by-element " + self.expr.__name__
 
 
 class Top(Postprocessor):
     """Keeps the top ranks as are and converts other ranks to zero."""
-    
-    def __init__(self,
-                 ranker: Union[float, NodeRanking] = None,
-                 fraction_of_training: Union[float, NodeRanking] = 1):
+
+    def __init__(
+        self,
+        ranker: Union[float, NodeRanking] = None,
+        fraction_of_training: Union[float, NodeRanking] = 1,
+    ):
         """
         Initializes the class with a  base ranker instance and number of top examples.
         Args:
@@ -265,34 +279,42 @@ class Top(Postprocessor):
         super().__init__(Tautology() if ranker is None else ranker)
         self.fraction_of_training = fraction_of_training
 
-    def _transform(self,
-                   ranks: GraphSignal,
-                   **kwargs):
+    def _transform(self, ranks: GraphSignal, **kwargs):
         ensure_used_args(kwargs)
         threshold = 0
-        fraction_of_training = self.fraction_of_training*backend.length(ranks) if self.fraction_of_training < 1 else self.fraction_of_training
+        fraction_of_training = (
+            self.fraction_of_training * backend.length(ranks)
+            if self.fraction_of_training < 1
+            else self.fraction_of_training
+        )
         fraction_of_training = int(fraction_of_training)
         for v in sorted(ranks, key=ranks.get, reverse=True):
             fraction_of_training -= 1
             if fraction_of_training == 0:
                 threshold = ranks[v]
                 break
-        return {v: 1. if ranks[v] >= threshold else 0. for v in ranks.keys()}
+        return {v: 1.0 if ranks[v] >= threshold else 0.0 for v in ranks.keys()}
 
     def _reference(self):
         if self.fraction_of_training > 1:
-            return "zero to all other than top "+str(int(self.fraction_of_training))+" ranks"
+            return (
+                "zero to all other than top "
+                + str(int(self.fraction_of_training))
+                + " ranks"
+            )
         return f"zero to all other than top {self.fraction_of_training:.3f} of ranks"
 
 
 class Threshold(Postprocessor):
-    """ Converts ranking outcome to binary values based on a threshold value."""
+    """Converts ranking outcome to binary values based on a threshold value."""
 
-    def __init__(self,
-                 ranker: Union[str, float, NodeRanking] = None,
-                 threshold: Union[str, float, NodeRanking] = 0,
-                 inclusive: bool = False):
-        """ Initializes the Threshold postprocessing scheme. Args are automatically filled in and
+    def __init__(
+        self,
+        ranker: Union[str, float, NodeRanking] = None,
+        threshold: Union[str, float, NodeRanking] = 0,
+        inclusive: bool = False,
+    ):
+        """Initializes the Threshold postprocessing scheme. Args are automatically filled in and
         re-ordered if at least one is provided.
 
         Args:
@@ -325,9 +347,7 @@ class Threshold(Postprocessor):
         self.threshold = threshold
         self.inclusive = inclusive
 
-    def _transform(self,
-                   ranks: GraphSignal,
-                   **kwargs):
+    def _transform(self, ranks: GraphSignal, **kwargs):
         ensure_used_args(kwargs)
         threshold = self.threshold
         if threshold == "gap":
@@ -343,20 +363,19 @@ class Threshold(Postprocessor):
                         threshold = ranks[v]
                 prev_rank = ranks[v]
         if self.inclusive:
-            return {v: 1. for v in ranks.keys() if ranks[v] >= threshold}
-        return {v: 1. for v in ranks.keys() if ranks[v] > threshold}
+            return {v: 1.0 for v in ranks.keys() if ranks[v] >= threshold}
+        return {v: 1.0 for v in ranks.keys() if ranks[v] > threshold}
 
     def _reference(self):
-        return str(self.threshold)+" threshold"
+        return str(self.threshold) + " threshold"
 
 
 class Sweep(Postprocessor):
     """
     Applies a sweep procedure that divides personalized node ranks by corresponding non-personalized ones.
     """
-    def __init__(self,
-                 ranker: NodeRanking = None,
-                 uniform_ranker: NodeRanking = None):
+
+    def __init__(self, ranker: NodeRanking = None, uniform_ranker: NodeRanking = None):
         """
         Initializes the sweep procedure.
 
@@ -384,18 +403,21 @@ class Sweep(Postprocessor):
         """
         super().__init__(ranker)
         self.uniform_ranker = ranker if uniform_ranker is None else uniform_ranker
-        self.centrality = MethodHasher(lambda graph: self.uniform_ranker.rank(graph), assume_immutability=True)
+        self.centrality = MethodHasher(
+            lambda graph: self.uniform_ranker.rank(graph), assume_immutability=True
+        )
 
-    def _transform(self,
-                   ranks: GraphSignal,
-                   **kwargs):
+    def _transform(self, ranks: GraphSignal, **kwargs):
         ensure_used_args(kwargs)
         uniforms = self.centrality(ranks.graph).np
-        return ranks.np/(1.E-12+uniforms)
+        return ranks.np / (1.0e-12 + uniforms)
 
     def _reference(self):
         if self.uniform_ranker != self.ranker:
-            return "sweep ratio postprocessing \\cite{andersen2007local} where non-personalized ranking is performed with a "+self.uniform_ranker.cite()
+            return (
+                "sweep ratio postprocessing \\cite{andersen2007local} where non-personalized ranking is performed with a "
+                + self.uniform_ranker.cite()
+            )
         return "sweep ratio postprocessing \\cite{andersen2007local}"
 
     def __lshift__(self, ranker):
@@ -408,9 +430,8 @@ class LinearSweep(Postprocessor):
     """
     Applies a sweep procedure that subtracts non-personalized ranks from personalized ones.
     """
-    def __init__(self,
-                 ranker: NodeRanking = None,
-                 uniform_ranker: NodeRanking = None):
+
+    def __init__(self, ranker: NodeRanking = None, uniform_ranker: NodeRanking = None):
         """
         Initializes the sweep procedure.
 
@@ -438,18 +459,21 @@ class LinearSweep(Postprocessor):
         """
         super().__init__(ranker)
         self.uniform_ranker = ranker if uniform_ranker is None else uniform_ranker
-        self.centrality = MethodHasher(lambda graph: self.uniform_ranker.rank(graph), assume_immutability=True)
+        self.centrality = MethodHasher(
+            lambda graph: self.uniform_ranker.rank(graph), assume_immutability=True
+        )
 
-    def _transform(self,
-                   ranks: GraphSignal,
-                   **kwargs):
+    def _transform(self, ranks: GraphSignal, **kwargs):
         ensure_used_args(kwargs)
         uniforms = self.centrality(ranks.graph).np
         return ranks.np - uniforms
 
     def _reference(self):
         if self.uniform_ranker != self.ranker:
-            return "linear sweep ratio postprocessing \\cite{krasanakis2022pygrank} where non-personalized ranking is performed with a "+self.uniform_ranker.cite()
+            return (
+                "linear sweep ratio postprocessing \\cite{krasanakis2022pygrank} where non-personalized ranking is performed with a "
+                + self.uniform_ranker.cite()
+            )
         return "linear sweep ratio postprocessing \\cite{krasanakis2022pygrank}"
 
     def __lshift__(self, ranker):
@@ -463,9 +487,7 @@ class Sequential(Postprocessor):
         super().__init__(args[0] if args else None)
         self.rankers = list(args)
 
-    def _transform(self,
-                   ranks: GraphSignal,
-                   **kwargs):
+    def _transform(self, ranks: GraphSignal, **kwargs):
         for ranker in self.rankers:
             if ranker != self.ranker:
                 ranks = ranker(ranks)
@@ -477,10 +499,12 @@ class SeparateNormalization(Postprocessor):
     Performs different normalizations between two different groups of nodes.
     Intended use is in implementing algorithms like HITS.
     """
-    def __init__(self,
-                 separator: GraphSignalData,
-                 ranker: NodeRanking = None,
-                 ):
+
+    def __init__(
+        self,
+        separator: GraphSignalData,
+        ranker: NodeRanking = None,
+    ):
         """
         Initializes the postprocessor.
         Args:
@@ -497,8 +521,7 @@ class SeparateNormalization(Postprocessor):
     def _transform(self, ranks: GraphSignal, **kwargs):
         separator = to_signal(ranks, self.separator)
         ranksR = ranks * separator
-        ranksB = ranks * (1-separator)
-        mulR = backend.safe_div(1., backend.sum(ranksR))
-        mulB = backend.safe_div(1., backend.sum(ranksB))
-        return ranksR*mulR + ranksB*mulB
-
+        ranksB = ranks * (1 - separator)
+        mulR = backend.safe_div(1.0, backend.sum(ranksR))
+        mulB = backend.safe_div(1.0, backend.sum(ranksB))
+        return ranksR * mulR + ranksB * mulB

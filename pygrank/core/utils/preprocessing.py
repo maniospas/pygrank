@@ -10,22 +10,32 @@ class Adjacency:
     """This class is used to wrap ndarrays and matrix primitives so that, although they are originally immotable,
     they can be enriched with backend resource switching.
     """
+
     def __init__(self, array):
-        self.array = array
+        self._array = array
         if hasattr(array, "shape"):
             self.shape = array.shape
 
+    @property
+    def array(self):
+        return self._array
+        """
+        if backend.backend_name() not in self.__pygrank_preprocessed:
+            self.__pygrank_preprocessed[backend.backend_name()] = Adjacency(backend.scipy_sparse_to_backend(self.__pygrank_preprocessed["numpy"]._array))
+            self.__pygrank_preprocessed[backend.backend_name()].__pygrank_preprocessed = self.__pygrank_preprocessed
+        return self.__pygrank_preprocessed[backend.backend_name()]._array"""
+
     def _np(self):
-        return self.array
+        return self._array
 
     def sum(self, axis=None):
-        return self.array.sum(axis)
+        return self._array.sum(axis)
 
     def tocoo(self):
-        return self.array.tocoo()
+        return self._array.tocoo()
 
     def __len__(self):
-        return len(self.array)
+        return len(self._array)
 
 
 def eigdegree(M):
@@ -34,27 +44,30 @@ def eigdegree(M):
     Args:
         M: the adjacency matrix
     """
-    v = backend.repeat(1., M.shape[0])
+    v = backend.repeat(1.0, M.shape[0])
     from pygrank.algorithms import ConvergenceManager
+
     convergence = ConvergenceManager(tol=backend.epsilon(), max_iters=1000)
     convergence.start()
     eig = 0
     v = v / backend.dot(v, v)
     while not convergence.has_converged(eig):
         v = backend.conv(v, M)
-        v = backend.safe_div(v, backend.dot(v, v)**0.5)
+        v = backend.safe_div(v, backend.dot(v, v) ** 0.5)
         eig = backend.dot(backend.conv(v, M), v)
-    return eig/(v*v)
+    return eig / (v * v)
 
 
-def to_sparse_matrix(G,
-                     normalization="auto",
-                     weight="weight",
-                     renormalize=False,
-                     reduction=backend.degrees,
-                     transform_adjacency = lambda x: x,
-                     cors=False):
-    """ Used to normalize a graph and produce a sparse matrix representation.
+def to_sparse_matrix(
+    G,
+    normalization="auto",
+    weight="weight",
+    renormalize=False,
+    reduction=backend.degrees,
+    transform_adjacency=lambda x: x,
+    cors=False,
+):
+    """Used to normalize a graph and produce a sparse matrix representation.
 
     Args:
         G: A networkx or fastgraph graph. If an object with a "shape" attribute is provided (which means that it
@@ -87,7 +100,9 @@ def to_sparse_matrix(G,
     """
     if hasattr(G, "__pygrank_preprocessed"):
         if backend.backend_name() in G.__pygrank_preprocessed:
-            return G.__pygrank_preprocessed[backend.backend_name()]  # this is basically caching, but it's pretty safe for just passing adjacency matrices around
+            return G.__pygrank_preprocessed[
+                backend.backend_name()
+            ]  # this is basically caching, but it's pretty safe for just passing adjacency matrices around
         ret = backend.scipy_sparse_to_backend(G.__pygrank_preprocessed["numpy"])
         if cors:
             ret.__pygrank_preprocessed = G.__pygrank_preprocessed
@@ -97,55 +112,73 @@ def to_sparse_matrix(G,
         ret._pygrank_node2id = G._pygrank_node2id
         return ret
     with backend.Backend("numpy"):
-        normalization = normalization.lower() if isinstance(normalization, str) else normalization
+        normalization = (
+            normalization.lower() if isinstance(normalization, str) else normalization
+        )
         if normalization == "auto":
             normalization = "col" if G.is_directed() else "symmetric"
-        M = G.to_scipy_sparse_array() if isinstance(G, fastgraph.Graph) else nx.to_scipy_sparse_array(G, weight=weight, dtype=float)
+        M = (
+            G.to_scipy_sparse_array()
+            if isinstance(G, fastgraph.Graph)
+            else nx.to_scipy_sparse_array(G, weight=weight, dtype=float)
+        )
         renormalize = float(renormalize)
-        left_reduction = reduction #(lambda x: backend.degrees(x)) if reduction == "sum" else reduction
+        left_reduction = reduction  # (lambda x: backend.degrees(x)) if reduction == "sum" else reduction
         right_reduction = lambda x: left_reduction(x.T)
         if renormalize != 0:
-            M = M + scipy.sparse.eye(M.shape[0]).tocsr()*renormalize
+            M = M + scipy.sparse.eye(M.shape[0]).tocsr() * renormalize
         if normalization == "col":
             S = np.array(left_reduction(M)).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Q = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Q = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             M = Q @ M
         elif normalization == "laplacian":
             S = np.array(np.sqrt(left_reduction(M))).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Qleft = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Qleft = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             S = np.array(np.sqrt(right_reduction(M))).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Qright = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Qright = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             M = Qleft @ M @ Qright
             M = -M + scipy.sparse.eye(M.shape[0]).tocsr()
         elif normalization == "both":
             S = np.array(left_reduction(M)).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Qleft = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Qleft = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             S = np.array(right_reduction(M)).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Qright = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Qright = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             M = Qleft @ M @ Qright
         elif normalization == "symmetric":
             S = np.array(np.sqrt(left_reduction(M))).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Qleft = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Qleft = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             S = np.array(np.sqrt(right_reduction(M))).flatten()
             S[S != 0] = 1.0 / S[S != 0]
-            Qright = scipy.sparse.spdiags(S.T, 0, *M.shape, format='csr').tocsr()
+            Qright = scipy.sparse.spdiags(S.T, 0, *M.shape, format="csr").tocsr()
             M = Qleft @ M @ Qright
         elif callable(normalization):
             M = normalization(M)
         elif normalization != "none":
-            raise Exception("Supported normalizations: none, col, symmetric, both, laplacian, auto")
+            raise Exception(
+                "Supported normalizations: none, col, symmetric, both, laplacian, auto"
+            )
     M = transform_adjacency(M)
-    ret = M if backend.backend_name() == "numpy" or backend.backend_name() == "sparse_dot_mkl" else backend.scipy_sparse_to_backend(M)
+    ret = (
+        M
+        if backend.backend_name() == "numpy"
+        or backend.backend_name() == "sparse_dot_mkl"
+        else backend.scipy_sparse_to_backend(M)
+    )
     ret = Adjacency(ret)
     if cors:
-        ret.__pygrank_preprocessed = {backend.backend_name(): ret, "numpy": Adjacency(M)}
-        ret.__pygrank_preprocessed["numpy"].__pygrank_preprocessed = ret.__pygrank_preprocessed
+        ret.__pygrank_preprocessed = {
+            backend.backend_name(): ret,
+            "numpy": Adjacency(M),
+        }
+        ret.__pygrank_preprocessed["numpy"].__pygrank_preprocessed = (
+            ret.__pygrank_preprocessed
+        )
     else:
         ret.__pygrank_preprocessed = {backend.backend_name(): ret}
     ret._pygrank_node2id = {v: i for i, v in enumerate(G)}
@@ -153,14 +186,14 @@ def to_sparse_matrix(G,
 
 
 def assert_binary(ranks):
-    """ Assert that ranks.values() are only 0 or 1.
+    """Assert that ranks.values() are only 0 or 1.
 
-        Args:
-            ranks: A dict-like object (e.g. a GraphSignal) to check for violations.
+    Args:
+        ranks: A dict-like object (e.g. a GraphSignal) to check for violations.
     """
     for v in ranks.values():
         if v not in [0, 1]:
-            raise Exception('Binary ranks required', v)
+            raise Exception("Binary ranks required", v)
 
 
 def obj2id(obj):
@@ -175,11 +208,19 @@ def _idfier(*args, **kwargs):
     """
     Converts args and kwargs into a hashable array of object ids.
     """
-    return "[" +",".join(obj2id(arg) for arg in args) + "]" + "{" + ",".join(v + ":" + obj2id(kwarg) for v, kwarg in kwargs.items()) + "}" + backend.backend_name()
+    return (
+        "["
+        + ",".join(obj2id(arg) for arg in args)
+        + "]"
+        + "{"
+        + ",".join(v + ":" + obj2id(kwarg) for v, kwarg in kwargs.items())
+        + "}"
+        + backend.backend_name()
+    )
 
 
 class MethodHasher:
-    """ Used to hash method runs, so that rerunning them with the same object inputs would directly output
+    """Used to hash method runs, so that rerunning them with the same object inputs would directly output
     the outcome of previous computations.
 
     Example:
@@ -230,14 +271,16 @@ class MethodHasher:
             return self._method(*args, **kwargs)
 
 
-def preprocessor(normalization: str = "auto",
-                 assume_immutability: bool = False,
-                 weight: str = "weight",
-                 renormalize: bool = False,
-                 reduction=backend.degrees,
-                 transform_adjacency=lambda x: x,
-                 cors: bool = False):
-    """ Wrapper function that generates lambda expressions for the method to_sparse_matrix.
+def preprocessor(
+    normalization: str = "auto",
+    assume_immutability: bool = False,
+    weight: str = "weight",
+    renormalize: bool = False,
+    reduction=backend.degrees,
+    transform_adjacency=lambda x: x,
+    cors: bool = False,
+):
+    """Wrapper function that generates lambda expressions for the method to_sparse_matrix.
 
     Args:
         normalization: Optional. The type of normalization can be "none", "col", "symmetric", "laplacian", "salsa",
@@ -274,14 +317,29 @@ def preprocessor(normalization: str = "auto",
             </details>
     """
     if assume_immutability:
-        ret = MethodHasher(preprocessor(assume_immutability=False,
-                                        normalization=normalization, weight=weight, renormalize=renormalize,
-                                        reduction=reduction, cors=cors, transform_adjacency=transform_adjacency))
+        ret = MethodHasher(
+            preprocessor(
+                assume_immutability=False,
+                normalization=normalization,
+                weight=weight,
+                renormalize=renormalize,
+                reduction=reduction,
+                cors=cors,
+                transform_adjacency=transform_adjacency,
+            )
+        )
         ret.__name__ = "preprocess"
         return ret
 
     def preprocess(G):
-        return to_sparse_matrix(G, normalization=normalization, weight=weight, renormalize=renormalize,
-                                reduction=reduction, cors=cors, transform_adjacency=transform_adjacency)
+        return to_sparse_matrix(
+            G,
+            normalization=normalization,
+            weight=weight,
+            renormalize=renormalize,
+            reduction=reduction,
+            cors=cors,
+            transform_adjacency=transform_adjacency,
+        )
 
     return preprocess

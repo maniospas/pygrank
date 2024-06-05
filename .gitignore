@@ -45,6 +45,7 @@ __pycache__/
 .Python
 env/
 build/
+.pytest_cache/
 develop-eggs/
 dist/
 downloads/

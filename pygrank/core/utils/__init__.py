@@ -4,7 +4,7 @@ import sys
 
 
 def log(text=""):
-    sys.stdout.write("\r"+text)
+    sys.stdout.write("\r" + text)
     sys.stdout.flush()
 
 
@@ -25,17 +25,29 @@ def call(method, kwargs, args=None):
     """
     if args:
         kwargs = dict(kwargs)
-        for arg, val in zip(list(inspect.signature(method).parameters)[:len(args)], args):
+        for arg, val in zip(
+            list(inspect.signature(method).parameters)[: len(args)], args
+        ):
             if arg in kwargs:
-                raise Exception("Repeated argument to method "+method.__name__+": "+arg)
+                raise Exception(
+                    "Repeated argument to method " + method.__name__ + ": " + arg
+                )
             kwargs[arg] = val
-    return method(**{kwarg: kwargs[kwarg] for kwarg in inspect.signature(method).parameters if kwarg in kwargs})
+    return method(
+        **{
+            kwarg: kwargs[kwarg]
+            for kwarg in inspect.signature(method).parameters
+            if kwarg in kwargs
+        }
+    )
 
 
 def remove_used_args(method, kwargs, args=None):
     if args:
         kwargs = dict(kwargs)
-        for arg, val in zip(list(inspect.signature(method).parameters)[:len(args)], args):
+        for arg, val in zip(
+            list(inspect.signature(method).parameters)[: len(args)], args
+        ):
             kwargs[arg] = val
     params = set(inspect.signature(method).parameters)
     return {kwarg: val for kwarg, val in kwargs.items() if kwarg not in params}
@@ -55,6 +67,6 @@ def ensure_used_args(kwargs, methods=None):
     if methods is not None:
         for method in methods:
             all_args.extend(inspect.signature(method).parameters.keys())
-    missing = set(kwargs.keys())-set(all_args)
+    missing = set(kwargs.keys()) - set(all_args)
     if len(missing) != 0:
-        raise Exception("No usage of argument(s) "+str(missing)+" found")
+        raise Exception("No usage of argument(s) " + str(missing) + " found")

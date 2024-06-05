@@ -1,4 +1,11 @@
-from pygrank.core import to_signal, NodeRanking, GraphSignal, GraphSignalGraph, GraphSignalData, assert_binary
+from pygrank.core import (
+    to_signal,
+    NodeRanking,
+    GraphSignal,
+    GraphSignalGraph,
+    GraphSignalData,
+    assert_binary,
+)
 from pygrank.algorithms.postprocess.postprocess import Postprocessor, Tautology
 
 
@@ -58,7 +65,9 @@ class Supergraph(Postprocessor):
         super().__init__(Tautology() if ranker is None else ranker)
 
     def transform(self, ranks: GraphSignal, *args, **kwargs):
-        return to_signal(ranks.graph._pygrank_original_graph, {u: ranks[u] for u in ranks})
+        return to_signal(
+            ranks.graph._pygrank_original_graph, {u: ranks[u] for u in ranks}
+        )
 
     def rank(self, *args, **kwargs):
         ranks = self.ranker.rank(*args, **kwargs)

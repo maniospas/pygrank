@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [3.11]
 
     steps:
       - uses: actions/checkout@v2
@@ -39,8 +39,19 @@ jobs:
       - name: Run tests
         run: |
           pytest -x --cov=pygrank --cov-report=xml tests/test_autorefs.py tests/test_core.py tests/test_measures.py tests/test_filters.py tests/test_autotune.py tests/test_filter_optimization.py tests/test_gnn.py tests/test_postprocessing.py tests/test_benchmarks.py tests/test_fairness.py tests/test_preprocessor.py
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          verbose: true
+      - name: Generate coverage badge
+        run: coverage-badge -o coverage.svg -f
+      - name: Commit coverage badge
+        if: ${{ matrix.python-version == '3.11' }}
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add coverage.svg
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m 'Updated coverage badge'
+            git push
+          else
+            echo "No changes in coverage to commit"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,3 +1,4 @@
+from pygrank.measures.time import Time
 from pygrank.measures.unsupervised import *
 from pygrank.measures.supervised import *
 from pygrank.measures.combination import *

@@ -5,14 +5,14 @@ import setuptools
 # - build  : python setup.py bdist_wheel
 # - deploy : twine upload dist/*
 
-#with open("README.md", "r") as file:
+# with open("README.md", "r") as file:
 #    long_description = file.read()
 
 long_description = "For tutorials, documentation and contribution guidelines, please visit the project's homepage at https://github.com/MKLab-ITI/pygrank"
 
 setuptools.setup(
-    name='pygrank',
-    version='0.2.12',
+    name="pygrank",
+    version="0.2.12",
     author="Emmanouil (Manios) Krasanakis",
     author_email="maniospas@hotmail.com",
     description="Recommendation algorithms for large graphs",
@@ -21,11 +21,9 @@ setuptools.setup(
     url="https://github.com/MKLab-ITI/pygrank",
     packages=setuptools.find_packages(),
     classifiers=[
-         "Programming Language :: Python :: 3",
-         "License :: OSI Approved :: Apache Software License",
-         "Operating System :: OS Independent",
-     ],
-    install_requires=[
-              'scikit-learn', 'scipy', 'numpy', 'networkx', 'wget'
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
     ],
- )
+    install_requires=["scikit-learn", "scipy", "numpy", "networkx", "wget"],
+)

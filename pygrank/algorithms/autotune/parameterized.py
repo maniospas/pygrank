@@ -1,15 +1,22 @@
 from pygrank.algorithms.autotune.tuning import Tuner
 from pygrank.algorithms.autotune.optimization import nelder_mead, optimize, lbfgsb
 from typing import Callable, Optional, Union, Iterable
-from pygrank.core import GraphSignal, to_signal, NodeRanking, no_signal, ensure_used_args, remove_used_args
+from pygrank.core import (
+    GraphSignal,
+    to_signal,
+    NodeRanking,
+    no_signal,
+    ensure_used_args,
+    remove_used_args,
+)
 from pygrank.core import preprocessor, backend
 from pygrank.measures import Measure, AUC, split
 
 
 default_tuning_optimization = {
-    "max_vals": [1]+[1] * 40,
-    "min_vals": [1]+[0] * 40,
-    "deviation_tol": 1.E-6,
+    "max_vals": [1] + [1] * 40,
+    "min_vals": [1] + [0] * 40,
+    "deviation_tol": 1.0e-6,
     "parameter_tol": 1,
     "verbose": True,
     "divide_range": 1.01,
@@ -17,7 +24,7 @@ default_tuning_optimization = {
     "depth": 1,
     "coarse": 0,
     "shrink_strategy": "divide",
-    "partition_strategy": "split"
+    "partition_strategy": "split",
 }
 
 
@@ -40,14 +47,18 @@ class ParameterTuner(Tuner):
     Tunes a parameterized version of node ranking algorithms under a specific measure by splitting the personalization
     in training and test sets. The tuning mechanism is fully described in [krasanakis2022autogf].
     """
-    def __init__(self, ranker_generator: Callable[[list], NodeRanking] = None,
-                 measure: Callable[[GraphSignal, GraphSignal], Measure] = AUC,
-                 fraction_of_training: Union[Iterable[float], float] = 0.9,
-                 cross_validate: int = 1,
-                 combined_prediction: bool = True,
-                 tuning_backend: str = None,
-                 optimizer=optimize,
-                 **kwargs):
+
+    def __init__(
+        self,
+        ranker_generator: Callable[[list], NodeRanking] = None,
+        measure: Callable[[GraphSignal, GraphSignal], Measure] = AUC,
+        fraction_of_training: Union[Iterable[float], float] = 0.9,
+        cross_validate: int = 1,
+        combined_prediction: bool = True,
+        tuning_backend: str = None,
+        optimizer=optimize,
+        **kwargs,
+    ):
         """
         Instantiates the tuning mechanism.
         Args:
@@ -93,19 +104,30 @@ class ParameterTuner(Tuner):
         """
         if ranker_generator is None:
             from pygrank.algorithms import GenericGraphFilter, Normalize
-            if 'preprocessor' not in kwargs and 'assume_immutability' not in kwargs and 'normalization' not in kwargs:
-                kwargs['preprocessor'] = preprocessor(assume_immutability=True)
+
+            if (
+                "preprocessor" not in kwargs
+                and "assume_immutability" not in kwargs
+                and "normalization" not in kwargs
+            ):
+                kwargs["preprocessor"] = preprocessor(assume_immutability=True)
             if "optimization_dict" not in kwargs:
                 kwargs["optimization_dict"] = SelfClearDict()
 
             def ranker_generator(params):
-                return Normalize(GenericGraphFilter(params, **remove_used_args(optimize, kwargs)))
-        #else:
+                return Normalize(
+                    GenericGraphFilter(params, **remove_used_args(optimize, kwargs))
+                )
+
+        # else:
         #    ensure_used_args(kwargs, [optimizer]) # TODO: find how to do this
         self.ranker_generator = ranker_generator
         self.measure = measure
         self.fraction_of_training = fraction_of_training
-        self.optimize_args = {kwarg: kwargs.get(kwarg, val) for kwarg, val in default_tuning_optimization.items()}
+        self.optimize_args = {
+            kwarg: kwargs.get(kwarg, val)
+            for kwarg, val in default_tuning_optimization.items()
+        }
         self.combined_prediction = combined_prediction
         self.tuning_backend = tuning_backend
         self.cross_validate = cross_validate
@@ -122,26 +144,39 @@ class ParameterTuner(Tuner):
         backend_personalization = to_signal(graph, backend.to_array(personalization.np))
         total_params = list()
         for seed0 in range(self.cross_validate):
-            fraction_of_training = self.fraction_of_training if isinstance(self.fraction_of_training, Iterable) else [ self.fraction_of_training]
-            #fraction_of_training = [random.choice(fraction_of_training)]
+            fraction_of_training = (
+                self.fraction_of_training
+                if isinstance(self.fraction_of_training, Iterable)
+                else [self.fraction_of_training]
+            )
+            # fraction_of_training = [random.choice(fraction_of_training)]
             internal_training_list = list()
             validation_list = list()
             for seed, fraction in enumerate(fraction_of_training):
-                training, validation = split(backend_personalization, fraction, seed0+seed)
+                training, validation = split(
+                    backend_personalization, fraction, seed0 + seed
+                )
                 internal_training = training
                 internal_training_list.append(internal_training)
                 validation_list.append(validation)
 
             def eval(params):
                 val = 0
-                for internal_training, validation in zip(internal_training_list, validation_list):
+                for internal_training, validation in zip(
+                    internal_training_list, validation_list
+                ):
                     """import pygrank as pg
 
                     scores = self._run(backend_personalization, params, *args, **kwargs)
                     internal_training = pg.Undersample(int(backend.sum(internal_training)))(scores*backend_personalization)
                     validation = backend_personalization - internal_training"""
-                    measure = self.measure(validation, internal_training if internal_training != validation else None)
-                    val = val-measure.best_direction() * measure.evaluate(self._run(internal_training, params, *args, **kwargs))
+                    measure = self.measure(
+                        validation,
+                        internal_training if internal_training != validation else None,
+                    )
+                    val = val - measure.best_direction() * measure.evaluate(
+                        self._run(internal_training, params, *args, **kwargs)
+                    )
                 return val / len(internal_training_list)
 
             best_params = self.optimizer(eval, **self.optimize_args)
@@ -156,19 +191,24 @@ class ParameterTuner(Tuner):
         for params in total_params:
             for i in range(len(best_params)):
                 best_params[i] = max(best_params[i], params[i])
-                best_means[i] += params[i]/self.cross_validate
-                best_squares[i] += params[i]**2/self.cross_validate
+                best_means[i] += params[i] / self.cross_validate
+                best_squares[i] += params[i] ** 2 / self.cross_validate
         best_params = best_means
 
         if self.tuning_backend is not None and self.tuning_backend != previous_backend:
             backend.load_backend(previous_backend)
             # TODO: make training back-propagate through tensorflow for combined_prediction==False (do this with a gather in the split method)
         self.last_params = best_params
-        return self.ranker_generator(best_params), personalization if self.combined_prediction else internal_training
+        return self.ranker_generator(best_params), (
+            personalization if self.combined_prediction else internal_training
+        )
 
     def references(self):
-        desc = "parameters tuned \\cite{krasanakis2022autogf} to optimize "+self.measure(no_signal, no_signal).__class__.__name__\
-               + f" while withholding {1-self.fraction_of_training:.3f} of nodes for validation"
+        desc = (
+            "parameters tuned \\cite{krasanakis2022autogf} to optimize "
+            + self.measure(no_signal, no_signal).__class__.__name__
+            + f" while withholding {1-self.fraction_of_training:.3f} of nodes for validation"
+        )
         ret = self.ranker_generator([-42]).references()  # an invalid parameter value
         for i in range(len(ret)):
             if "-42" in ret[i]:

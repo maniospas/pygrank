@@ -10,11 +10,15 @@ import numpy as np
 class AlgorithmSelection(Tuner):
     """Selects the best among a list of node ranking algorithms by randomly masking the personalization and trying
     to reconstruct the masked portion."""
-    def __init__(self, rankers: Iterable[NodeRanking] = None,
-                 measure: Callable[[GraphSignal, GraphSignal], Measure] = AUC,
-                 fraction_of_training: Union[Iterable[float], float] = 0.9,
-                 combined_prediction: bool = True,
-                 tuning_backend: str = None):
+
+    def __init__(
+        self,
+        rankers: Iterable[NodeRanking] = None,
+        measure: Callable[[GraphSignal, GraphSignal], Measure] = AUC,
+        fraction_of_training: Union[Iterable[float], float] = 0.9,
+        combined_prediction: bool = True,
+        tuning_backend: str = None,
+    ):
         """
         Instantiates the tuning mechanism.
         Args:
@@ -48,6 +52,7 @@ class AlgorithmSelection(Tuner):
         """
         if rankers is None:
             from pygrank.benchmarks import create_demo_filters
+
             rankers = create_demo_filters().values()
         self.rankers = rankers
         self.measure = measure
@@ -63,15 +68,24 @@ class AlgorithmSelection(Tuner):
         backend_personalization = to_signal(graph, backend.to_array(personalization.np))
         prev_dropout = kwargs.get("graph_dropout")
         kwargs["graph_dropout"] = 0
-        best_value = -float('inf')
+        best_value = -float("inf")
         best_ranker = None
-        fraction_of_training = self.fraction_of_training if isinstance(self.fraction_of_training, Iterable) else [self.fraction_of_training]
+        fraction_of_training = (
+            self.fraction_of_training
+            if isinstance(self.fraction_of_training, Iterable)
+            else [self.fraction_of_training]
+        )
         for ranker in self.rankers:
             values = list()
             for seed, fraction in enumerate(fraction_of_training):
-                training, validation = split(backend_personalization, fraction, seed=seed)
+                training, validation = split(
+                    backend_personalization, fraction, seed=seed
+                )
                 measure = self.measure(validation, training)
-                values. append(measure.best_direction()*measure.evaluate(ranker.rank(training, *args, **kwargs)))
+                values.append(
+                    measure.best_direction()
+                    * measure.evaluate(ranker.rank(training, *args, **kwargs))
+                )
             value = np.min(values)
             if value > best_value:
                 best_value = value
@@ -83,9 +97,11 @@ class AlgorithmSelection(Tuner):
         return best_ranker, personalization if self.combined_prediction else training
 
     def references(self):
-        desc = "selected the best among the following algorithms \\cite{krasanakis2022autogf} that optimizes "\
-               + self.measure(no_signal, no_signal).__class__.__name__ \
-               + f" while withholding {1-self.fraction_of_training:.3f} of nodes for validation: \\\\\n"
+        desc = (
+            "selected the best among the following algorithms \\cite{krasanakis2022autogf} that optimizes "
+            + self.measure(no_signal, no_signal).__class__.__name__
+            + f" while withholding {1-self.fraction_of_training:.3f} of nodes for validation: \\\\\n"
+        )
         for ranker in self.rankers:
-            desc += "  - "+ranker.cite()+" \\\\\n"
+            desc += "  - " + ranker.cite() + " \\\\\n"
         return [desc]

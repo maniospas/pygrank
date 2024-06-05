@@ -1,11 +1,18 @@
 from typing import Callable, Mapping, Union
-from pygrank.algorithms import NodeRanking, preprocessor as preprocess, PageRank, AbsorbingWalks, HeatKernel, BiasedKernel
+from pygrank.algorithms import (
+    NodeRanking,
+    preprocessor as preprocess,
+    PageRank,
+    AbsorbingWalks,
+    HeatKernel,
+    BiasedKernel,
+)
 from pygrank.algorithms import Postprocessor, Tautology, Sweep, SeedOversampling
 
 
-def create_demo_filters(preprocessor=None,
-                        tol: float = 1.E-9,
-                        max_iters: int = 1000) -> Mapping[str, NodeRanking]:
+def create_demo_filters(
+    preprocessor=None, tol: float = 1.0e-9, max_iters: int = 1000
+) -> Mapping[str, NodeRanking]:
     """
     Creates six commonly used graph filters with automatic normalization and immutability. These are applicable
     to a wide range of real-world scenarios. Filters share the same preprocessor to run experiments faster.
@@ -22,17 +29,25 @@ def create_demo_filters(preprocessor=None,
     """
     if preprocessor is None:
         preprocessor = preprocess(assume_immutability=True)
-    return {"PPR.85": PageRank(alpha=0.85, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
-            "PPR.9": PageRank(alpha=0.9, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
-            "PPR.95": PageRank(alpha=0.95, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
-            "HK3": HeatKernel(t=3, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
-            "HK5": HeatKernel(t=5, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
-            "HK7": HeatKernel(t=7, preprocessor=preprocessor, max_iters=max_iters, tol=tol)
-            }
+    return {
+        "PPR.85": PageRank(
+            alpha=0.85, preprocessor=preprocessor, max_iters=max_iters, tol=tol
+        ),
+        "PPR.9": PageRank(
+            alpha=0.9, preprocessor=preprocessor, max_iters=max_iters, tol=tol
+        ),
+        "PPR.95": PageRank(
+            alpha=0.95, preprocessor=preprocessor, max_iters=max_iters, tol=tol
+        ),
+        "HK3": HeatKernel(t=3, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
+        "HK5": HeatKernel(t=5, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
+        "HK7": HeatKernel(t=7, preprocessor=preprocessor, max_iters=max_iters, tol=tol),
+    }
 
 
-def create_many_filters(tol: float = 1.E-6,
-                        max_iters: int = 10000) -> Mapping[str, NodeRanking]:
+def create_many_filters(
+    tol: float = 1.0e-6, max_iters: int = 10000
+) -> Mapping[str, NodeRanking]:
     """
     Creates a wide range of base filters to use for benchmarking of evaluation measures. It is recommended that
     variations of recommended filters are also applied. This includes both symmetric and non-symmetric filters.
@@ -47,13 +62,19 @@ def create_many_filters(tol: float = 1.E-6,
     Returns:
         A map from filter names to algorithms.
     """
-    pre = preprocess('col', assume_immutability=True)
-    preL = preprocess('symmetric', assume_immutability=True)
+    pre = preprocess("col", assume_immutability=True)
+    preL = preprocess("symmetric", assume_immutability=True)
     return {
-        "PPRL.85": PageRank(alpha=0.85, preprocessor=preL, max_iters=max_iters, tol=tol),
+        "PPRL.85": PageRank(
+            alpha=0.85, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
         "PPRL.90": PageRank(alpha=0.9, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "PPRL.95": PageRank(alpha=0.95, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "PPRL.99": PageRank(alpha=0.99, preprocessor=preL, max_iters=max_iters, tol=tol),
+        "PPRL.95": PageRank(
+            alpha=0.95, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
+        "PPRL.99": PageRank(
+            alpha=0.99, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
         "PPR.85": PageRank(alpha=0.85, preprocessor=pre, max_iters=max_iters, tol=tol),
         "PPR.90": PageRank(alpha=0.9, preprocessor=pre, max_iters=max_iters, tol=tol),
         "PPR.95": PageRank(alpha=0.95, preprocessor=pre, max_iters=max_iters, tol=tol),
@@ -66,29 +87,53 @@ def create_many_filters(tol: float = 1.E-6,
         "HKL3": HeatKernel(t=3, preprocessor=preL, max_iters=max_iters, tol=tol),
         "HKL5": HeatKernel(t=5, preprocessor=preL, max_iters=max_iters, tol=tol),
         "HKL7": HeatKernel(t=7, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "AbsorbL.85": AbsorbingWalks(alpha=0.85, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "AbsorbL.90": AbsorbingWalks(alpha=0.9, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "AbsorbL.95": AbsorbingWalks(alpha=0.95, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "AbsorbL.99": AbsorbingWalks(alpha=0.99, preprocessor=preL, max_iters=max_iters, tol=tol),
-        "Absorb.85": AbsorbingWalks(alpha=0.85, preprocessor=pre, max_iters=max_iters, tol=tol),
-        "Absorb.90": AbsorbingWalks(alpha=0.9, preprocessor=pre, max_iters=max_iters, tol=tol),
-        "Absorb.95": AbsorbingWalks(alpha=0.95, preprocessor=pre, max_iters=max_iters, tol=tol),
-        "Absorb.99": AbsorbingWalks(alpha=0.99, preprocessor=pre, max_iters=max_iters, tol=tol),
+        "AbsorbL.85": AbsorbingWalks(
+            alpha=0.85, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
+        "AbsorbL.90": AbsorbingWalks(
+            alpha=0.9, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
+        "AbsorbL.95": AbsorbingWalks(
+            alpha=0.95, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
+        "AbsorbL.99": AbsorbingWalks(
+            alpha=0.99, preprocessor=preL, max_iters=max_iters, tol=tol
+        ),
+        "Absorb.85": AbsorbingWalks(
+            alpha=0.85, preprocessor=pre, max_iters=max_iters, tol=tol
+        ),
+        "Absorb.90": AbsorbingWalks(
+            alpha=0.9, preprocessor=pre, max_iters=max_iters, tol=tol
+        ),
+        "Absorb.95": AbsorbingWalks(
+            alpha=0.95, preprocessor=pre, max_iters=max_iters, tol=tol
+        ),
+        "Absorb.99": AbsorbingWalks(
+            alpha=0.99, preprocessor=pre, max_iters=max_iters, tol=tol
+        ),
     }
 
 
-def create_many_variation_types() -> Mapping[str, Callable[[NodeRanking], Postprocessor]]:
-    return {"": Tautology,
-            "Sweep": Sweep,
-            "O": lambda alg: SeedOversampling(alg, "safe"),
-            "SweepO": lambda alg: SeedOversampling(Sweep(alg), "safe"),
-            "Neigh": lambda alg: SeedOversampling(alg, "neighbors"),
-            "SweepNeigh": lambda alg: SeedOversampling(Sweep(alg), "neighbors")
-            }
+def create_many_variation_types() -> (
+    Mapping[str, Callable[[NodeRanking], Postprocessor]]
+):
+    return {
+        "": Tautology,
+        "Sweep": Sweep,
+        "O": lambda alg: SeedOversampling(alg, "safe"),
+        "SweepO": lambda alg: SeedOversampling(Sweep(alg), "safe"),
+        "Neigh": lambda alg: SeedOversampling(alg, "neighbors"),
+        "SweepNeigh": lambda alg: SeedOversampling(Sweep(alg), "neighbors"),
+    }
 
 
-def create_variations(algorithms: Mapping[str, NodeRanking],
-                      variations: Union[Callable[[NodeRanking], Postprocessor], Mapping[str, Callable[[NodeRanking], Postprocessor]]]):
+def create_variations(
+    algorithms: Mapping[str, NodeRanking],
+    variations: Union[
+        Callable[[NodeRanking], Postprocessor],
+        Mapping[str, Callable[[NodeRanking], Postprocessor]],
+    ],
+):
     """
     Augments provided algorithms with all possible variations.
     Args:
@@ -109,5 +154,7 @@ def create_variations(algorithms: Mapping[str, NodeRanking],
     all_algorithms = dict()
     for variation in variations:
         for algorithm in algorithms:
-            all_algorithms[algorithm + variation] = variations[variation](algorithms[algorithm])
+            all_algorithms[algorithm + variation] = variations[variation](
+                algorithms[algorithm]
+            )
     return all_algorithms

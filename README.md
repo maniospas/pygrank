@@ -12,7 +12,7 @@ Fast node ranking algorithms on large graphs.
 <br><sup><sub>*Externally install non-numpy backends before using them.*</sub></sup>
 
 ![build](https://github.com/MKLab-ITI/pygrank/actions/workflows/tests.yml/badge.svg)
-[![codecov](https://codecov.io/gh/MKLab-ITI/pygrank/branch/master/graph/badge.svg?token=RYZOT4UY8Q)](https://codecov.io/gh/MKLab-ITI/pygrank)
+![coverage](https://github.com/MKLab-ITI/pygrank/actions/workflows/tests.yml/coverage.svg)
 [![Downloads](https://static.pepy.tech/personalized-badge/pygrank?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/pygrank)
 
 # :rocket: New features (after 0.2.10)

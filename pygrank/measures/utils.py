@@ -4,50 +4,11 @@ from pygrank.core import GraphSignal, to_signal, GraphSignalData
 from typing import Mapping, Union
 import networkx as nx
 
-
-class Measure(object):
-    def __call__(self, scores: GraphSignalData):
-        return self.evaluate(scores)
-
-    def evaluate(self, scores: GraphSignalData):
-        raise Exception("Non-abstract subclasses of Measure should implement an evaluate method")
-
-    def best_direction(self) -> int:
-        """
-        Automatically determines if higher or lower values of the measure are better.
-        Design measures so that outcomes of this method depends **only** on their class,
-        as it follows a class-based hashing to guarantee speed. Otherwise override derived classes.
-
-        Returns:
-            1 if higher values of the measure are better, -1 otherwise.
-        """
-        return 1  # TODO: automatically detect unsupervised direction
-
-    def as_supervised_method(self):
-        def dummy_constructor(known_scores, exclude=None):
-            self.known_scores = known_scores
-            self.exclude = exclude
-            return self
-        dummy_constructor.__name__ = self.__class__.__name__
-        return dummy_constructor
-
-    def as_unsupervised_method(self):
-        def dummy_constructor(graph=None):
-            self.graph = graph
-            return self
-        dummy_constructor.__name__ = self.__class__.__name__
-        return dummy_constructor
-
-    def as_immutable_method(self):
-        def dummy_constructor(*args, **kwargs):
-            return self
-        dummy_constructor.__name__ = self.__class__.__name__
-        return dummy_constructor
-
-
-def split(groups: Union[GraphSignalData, Mapping[str, GraphSignalData]],
-          training_samples: float = 0.8,
-          seed: int = 0):
+def split(
+    groups: Union[GraphSignalData, Mapping[str, GraphSignalData]],
+    training_samples: float = 0.8,
+    seed: int = 0,
+):
     """
     Splits a graph signal, iterable of map of graph signals and iterables into two same-type objects
     with training and test data respectively. For graph signals, training and test data are
@@ -76,14 +37,32 @@ def split(groups: Union[GraphSignalData, Mapping[str, GraphSignalData]],
         if seed is not None:
             group = sorted(group)
         random.Random(seed).shuffle(group)
-        splt = int(training_samples) if training_samples > 1 else (int(len(group) * training_samples) if training_samples >= 0 else len(group)+int(training_samples))
-        return to_signal(groups, {v: groups[v] for v in group[:splt]}), to_signal(groups, {v: groups[v] for v in group[splt:]})
+        splt = (
+            int(training_samples)
+            if training_samples > 1
+            else (
+                int(len(group) * training_samples)
+                if training_samples >= 0
+                else len(group) + int(training_samples)
+            )
+        )
+        return to_signal(groups, {v: groups[v] for v in group[:splt]}), to_signal(
+            groups, {v: groups[v] for v in group[splt:]}
+        )
     if not isinstance(groups, collections.abc.Mapping):
         group = list(groups)
         if seed is not None:
             group = sorted(group)
         random.Random(seed).shuffle(group)
-        splt = int(training_samples) if training_samples > 1 else (int(len(group) * training_samples) if training_samples >= 0 else len(group)+int(training_samples))
+        splt = (
+            int(training_samples)
+            if training_samples > 1
+            else (
+                int(len(group) * training_samples)
+                if training_samples >= 0
+                else len(group) + int(training_samples)
+            )
+        )
         return group[:splt], group[splt:]
     testing = {}
     training = {}
@@ -92,7 +71,9 @@ def split(groups: Union[GraphSignalData, Mapping[str, GraphSignalData]],
     return training, testing
 
 
-def remove_intra_edges(graph: nx.Graph, group: Union[GraphSignalData, Mapping[str, GraphSignalData]]):
+def remove_intra_edges(
+    graph: nx.Graph, group: Union[GraphSignalData, Mapping[str, GraphSignalData]]
+):
     if isinstance(group, collections.abc.Mapping):
         for actual_group in group.values():
             remove_intra_edges(graph, actual_group)
