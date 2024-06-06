@@ -255,8 +255,10 @@ def load_datasets_graph(datasets: Union[Iterable[str], str], **kwargs):
         graph, _ = import_snap_format_dataset(dataset, max_group_number=0, **kwargs)
         yield graph
 
+def load_one(dataset: str, **kwargs):
+    return next(load_datasets_one_community([dataset]), **kwargs)
 
-def load_datasets_one_community(datasets: Union[Iterable[str], str], **kwargs):
+def load_datasets_one_community(datasets: Iterable[str], **kwargs):
     """
     Iterates through all available datasets that exhibit structural communities and loads them with
     *import_snap_format_dataset* for experiments.
@@ -266,6 +268,7 @@ def load_datasets_one_community(datasets: Union[Iterable[str], str], **kwargs):
         datasets: A iterable of dataset names corresponding to a folder name in which the dataset is stored.
         kwargs: Additional keyword arguments to pass to the method `import_snap_format_dataset`.
     Yields:
+        name: The graph name.
         graph: A graph of node relations. Nodes are indexed in the order the graph is traversed.
         group: The first structural community found in the dataset.
 
@@ -274,8 +277,7 @@ def load_datasets_one_community(datasets: Union[Iterable[str], str], **kwargs):
         >>> for graph, group in pg.load_datasets_one_community(pg.downloadable_datasets()):
         >>>     ...
     """
-    if isinstance(datasets, str):
-        return next(load_datasets_one_community([datasets], **kwargs))
+    assert not isinstance(datasets, str), "You called load_datasets_one_community with a string argument instead of list of strings. Maybe you meant to call load_one."
     datasets = [(dataset, 0) if len(dataset) != 2 else dataset for dataset in datasets]
     last_loaded_dataset = None
     for dataset, group_id in datasets:

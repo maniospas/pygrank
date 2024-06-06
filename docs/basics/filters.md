@@ -19,11 +19,13 @@ found [here](../generated/filters.md).
 More complicated node ranking algorithms can be obtained by applying postprocessors on
 filters. This is covered in the [next section](postprocessors.md).
 After its initialization, a filter `alg` can run
-with one of the following two patterns (these are interchangeable):
+with one of the following three patterns (the first two are interchangeable):
 
-* `ranks = alg(graph, personalization)`
-* `alg(pg.to_signal(graph, personalization))`
-
+| Pattern                                              | Description                                                                                                                                               |
+|------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `scores = alg(pg.to_signal(graph, personalization))` | More explicit. Enables some rarely used advanced options.                                                                                                 |
+| `scores = alg(graph, personalization)`               | Internally calls the `to_signal` method. Faster code writing.                                                                                             |
+| `scores = alg(graph)`                                | Computes non-personalized node scores by setting the personalization value to 1 for each node. This turns the algorithm's outcome into centrality scores. |
 
 As an example, let us define an personalized PageRank filter. If the personalization is
 binary (i.e. all nodes have initial scores either 0 or 1) this algorithm
@@ -34,65 +36,51 @@ of arriving at each node.
 
 We use a restart probability at each step *1-alpha=0.01* and will
 perform "col" (column-wise) normalization of the adjacency matrix to make
-jumps to neighbors have equal probabilities (the alternative is "symmetric"
+jumps to neighbors have equal probabilities. The alternative is "symmetric"
 normalization, where the probabilities of moving between two nodes are the
-same for both movement directions). We will also stop the algorithm at numerical
-tolerance 1.E-9. Smaller tolerances are more accurate in exactly solving
-each algorithm's exact outputs but take longer to converge.
+same for both movement directions. Without an argument, the type of
+normalization is selected based on whether the graph is directed or undirected
+respectively. Find more in the advanced graph preprocessing section 
+[here](../advanced/graph_preprocessing.md).
+
+We also stop the algorithm at numerical
+tolerance *1.E-9*. Smaller tolerances are more accurate in exactly solving
+each algorithm's exact outputs but take longer to converge. Since this is
+a particularly hard graph to rank despite being very small (pygrank throws an exception if we stick
+with the default number of 100 iterations), we increase the budget for iterations
+to *2000*. An advanced
+discussion on convergence management strategies is presented [here](../advanced/convergence.md).
 
 ```python
 import pygrank as pg
-algorithm = pg.PageRank(alpha=0.99, normalization="col", tol=1.E-9)
-```
-
-Having defined this algorithm, we will now use the graph `G` and graph signal
-`signal` generated in the previous section. Passing these through the pipeline
-while ignoring any postprocessing for the time being can be done as:
-
-```python
-scores = algorithm(graph, signal)
-# Exception: ('Could not converge within 100 iterations')
-```
-
-The code threw an exception, because for alpha values near 1 and high tolerance
-PageRank is slow to converge. Convergence speed is further reduced by the graph being
-sparsely connected (this does not happen for graphs with higher average node
-degrees). To address this issue, we can either set a laxer numerical
-tolerance or simply provide a larger number of iterations the algorithm is allowed
-to run for. For the sake of demonstration, we chose the second solution and allow
-the algorithm to run for up to 2,000 iterations:
-
-```python
 algorithm = pg.PageRank(alpha=0.99, normalization="col", tol=1.E-9, max_iters=2000)
-scores = algorithm(graph, signal)
-print(scores)
-# [('A', 0.25613418536078547), ('B', 0.12678642237010243), ('C', 0.2517487443382047), ('D', 0.24436832596280528), ('E', 0.12096232196810223)]
-```
-
-We can see that both 'A' and 'C' end up with the higher scores,
-which are approximately 0.25. 'D' forms a circle with these
-in the graph's structure and thus, by merit of being structurally close,
-is scored closely to these two as 0.24. Finally, the other two nodes
-assume lower values.
-
-In the above code, we could also pass to the `rank` method
-the dictionary `{'A':1, 'C': 2}` in place
-of the signal and the package would make the conversion internally.
-Alternatively, if a graph signal is already defined,
-the graph could be omitted, as shown next. We stress that this is possible
-only because the graph signal holds a reference to the graph it is tied to
-and directly inputting other kinds of primitives would throw an error message.
-
-```python
-scores = algorithm(signal)
-```
-
-We now examine the structural relatedness of various nodes to the personalization:
-```python
-print(scores)
-# [('A', 0.25613418536078547), ('B', 0.12678642237010243), ('C', 0.2517487443382047), ('D', 0.24436832596280528), ('E', 0.12096232196810223)]
 ```
 
 !!! info
-    Most filters are low-pass (they reduce graph eigenvalues) and thus smooth out the 
-    personalization through the graph's structure.
+    Filters like pagerank focus on diffusing scores fewer hops away
+    and are thus low-pass in that they reduce graph adjacency matrix's eigenvalues,
+    which are often considered the spectrum.
+    In practice, they smoothen the personalization through the graph's structure.
+
+Having defined this algorithm, we now pass a graph signal through the pipeline below.
+For the time being, we do not perform any postprocessing and rely on the base filter.
+Notice that both 'A' and 'C' end up with the higher scores,
+which are approximately 0.25. 'D' forms a circle with these
+in the graph's structure and thus, by merit of being structurally close,
+is scored closely to these two as 0.24. Finally, the other two nodes
+assume lower values. Essentially, we obtain the structural relatedness 
+of various nodes to the personalization:
+
+
+```python
+scores = algorithm(signal)  # or algorithm(graph, {'A':1, 'C': 2})
+print(scores)  # [('A', 0.25613418536078547), ('B', 0.12678642237010243), ('C', 0.2517487443382047), ('D', 0.24436832596280528), ('E', 0.12096232196810223)]
+```
+
+
+!!! info
+    In the above code, we could also pass the graph and
+    dictionary `{'A':1, 'C': 2}` as positional arguments in place
+    of the signal, and the latter would be generated internally.
+    For signals we can omit the graph argument because a graph
+    is already tied to the signal.

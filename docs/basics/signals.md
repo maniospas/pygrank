@@ -16,41 +16,40 @@ can be created as:
 ```python
 import pygrank as pg
 import networkx as nx
+
 graph = nx.Graph()
 graph.add_edge('A', 'B')
 graph.add_edge('A', 'C')
 graph.add_edge('C', 'D')
 graph.add_edge('D', 'E')
 signal = pg.to_signal(graph, {'A': 3, 'C': 2})
-print(signal['A'], signal['B'])
-# 3.0 0.0
+
+print(signal['A'], signal['B'])  # 3.0 0.0
 ```
 
-Parsable formats to indicate the node values are:
+Formats to indicate the node values with which to construct signals per `pg.to_signal(graph, obj)` are:
 
-* Maps of node values, like `{'A': 3, 'C': 2}` in the above example. These assume all other missing elements 
-to represent zero values. 
-* Numpy arrays (e.g., `np.array([3, 0, 2, 0])`) that represent numerical values for
-each graph node, where nodes are organized per their traversal order in the graph's iterator.
-* Lists of values or tensors supported by the backend in use that follow the same convention as arrays. 
-If tensors are provided, most computations remain backpropagate-able.
-* `None` is interpreted as a signal of ones.
-
+| Format Type                                               | Description                                                                                                                                                                                        | Example                      |
+|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------|
+| Maps of node values                                       | Assume all other missing elements to represent zero values.                                                                                                                                        | `obj={'A': 3, 'C': 2}`       |
+| Numpy arrays, lists or tensors.                           | Represent numerical values for each graph node, where nodes are organized per their traversal order in the graph's iterator. If tensors are provided, most computations remain backpropagate-able. | `obj=np.array([3, 0, 2, 0])` |
+| List or set of nodes with fewer elements than graph nodes | Assigns value of one to specified nodes. Other nodes obtain zero values.                                                                                                                           | `obj=['A', 'C']`             |
+| `None`                                                    | Interpreted as a signal of ones.                                                                                                                                                                   | `obj=None`                   |
 
 
 !!! info
     Signal values can be accessed 
     through the `signal.np` attribute, which out-of-the-box holds a `numpy` array.
-    The attribute can hold different types of data depending on the *current*
-    backend being used; switching backend after a signal is obtained will return
+    Different data types may be held, depending on the *current*
+    backend; switching backends after a signal is obtained will yield
     a representation in the new backend's preferred format. 
 
 Arithmetic operations defined by the running backend
 are also directly applicable to signals by implying the `np` attribute,
-like this:
+like below. All operations involving signals should occur on the same
+graph, and include a respective assertion.
 
 ```python
 signal = signal / pg.sum(signal)
-print([(k,v) for k,v in signal.items()])
-# [('A', 0.6), ('B', 0.0), ('C', 0.4), ('D', 0.0), ('E', 0.0)]
+print([(k,v) for k,v in signal.items()])  # [('A', 0.6), ('B', 0.0), ('C', 0.4), ('D', 0.0), ('E', 0.0)]
 ```

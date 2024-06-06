@@ -20,7 +20,7 @@ class Supervised(Measure):
         Args:
             known_scores: The desired graph signal outcomes.
             exclude: Optional. An iterable (e.g. list, map, networkx graph, graph signal) whose items/keys are traversed
-                to determine which nodes to ommit from the evaluation, for example because they were used for training.
+                to determine which nodes to omit from the evaluation, for example because they were used for training.
                 If None (default) the measure is evaluated on all graph nodes. You can safely set the `self.exclude`
                 property at any time to alter this original value. Prefer using this behavior to avoid overfitting
                 measure assessments.

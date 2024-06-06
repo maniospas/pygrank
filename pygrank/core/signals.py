@@ -369,7 +369,7 @@ def to_signal(graph: GraphSignalGraph, obj: GraphSignalData) -> GraphSignal:
         graph = graph.graph
     elif backend.is_array(graph):
         raise Exception("Graph cannot be an array")
-    if isinstance(obj, list) and len(obj) != len(graph):
+    if (isinstance(obj, list) or isinstance(obj, set)) and len(obj) != len(graph):
         obj = {v: 1 for v in obj}
     if isinstance(obj, GraphSignal):
         if id(graph) != id(obj.graph):

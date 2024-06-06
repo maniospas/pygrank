@@ -9,7 +9,7 @@ from the rest of their arguments and applied onto filters afterwards with the
 functional chain pattern `algorithm = filter >> postprocessor`.
 
 
-An list of ready-to-use postprocessors can be
+A list of ready-to-use postprocessors can be
 found [here](../generated/postprocessors.md). Simpler ones perform
 normalization, for example to enforce the maximal or the sum 
 of node scores to be 1. There also exist thresholding schemes, which can be used

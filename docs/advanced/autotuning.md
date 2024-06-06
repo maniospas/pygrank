@@ -8,47 +8,94 @@ through a `pygrank.Tuner` base class, which wraps
 any kind of node ranking algorithm. Ideally, this would wrap end-product
 algorithms.
 
-!!! warning
+!!! info
     Tuners differ from benchmarks in that they select node ranking algorithms
-    on-the-fly based on input data. They may overfit even with train-validation-test splits.
+    on-the-fly based on the graph signal input.
+
+## Getting started
 
 An exhaustive list of ready-to-use tuners can be found [here](../generated/tuners.md).
-After initialization with the appropriate
-parameters, these can run with the same pattern as other node ranking algorithms.
-Tuner instances with default arguments use commonly seen base settings.
+After initialization, these can run with the same pattern as other node ranking algorithms.
+Tuner instances with default arguments use common base settings.
 For example, the following code separates training and evaluation
-data of a provided personalization signal and then uses a tuner that
+data for a provided personalization signal and then uses a tuner that
 by default creates a `GenericGraphFilter` instance with ten parameters.
 
 ```python
 import pygrank as pg
-graph, personalization = ...
-training, evaluation = pg.split(pg.to_signal(graph, personalization, training_samples=0.5))
-scores_pagerank = pg.PageRank()(graph, training)
-scores_tuned = pg.ParameterTuner()(graph, training)
-auc_pagerank = pg.AUC(evaluation, exclude=training).evaluate(scores_pagerank)
-auc_tuned = pg.AUC(evaluation, exclude=training).evaluate(scores_tuned)
-assert auc_pagerank <= auc_tuned
-# True
+
+_, graph, group = pg.load_one("eucore")
+signal = pg.to_signal(graph, group)
+
+train, test = pg.split(signal, training_samples=0.5)
+
+scores_pagerank = pg.PageRank(max_iters=1000)(train)
+scores_tuned = pg.ParameterTuner()(train)
+
+measure = pg.AUC(test, exclude=train)
+pg.benchmark_print_line("Pagerank", measure(scores_pagerank))
+pg.benchmark_print_line("Tuned", measure(scores_tuned))
+# Pagerank       	 .83
+# Tuned          	 .91
 ```
 
-Specific algorithms can also be tuned on specific parameter values, given
-a method to instantiate the algorithm from a given set of parameters
-(at worst, a lambda expression). For example, the following code defines and runs
-a tuner with the same training personalization of the
-previous example. The tuner finds the optimal alpha value of personalized
-PageRank that optimizes NDCG (tuners optimize AUC be default if no measure is provided).
+Instead of repeating the whole optimization
+process each time a tuner runs, you may
+want to tune once and use the created node ranking
+algorithm later. This can be achieved with the following pattern:
+
+```python
+algorithm_tuned = pg.ParameterTuner().tune(training)
+scores_tuned = algorithm_tuned(training)
+```
+
+## Customization
+
+Tune your algorithms by passing to the `ParameterTuner` 
+a method (or lambda expression) that constructs them 
+given a list of parameters. Also provide corresponding
+upper and lower bounds for the parameters.
+An example follows:
+
+```python
+def custom_algorithm(params): 
+    assert len(params) == 1
+    return pg.PageRank(alpha=params[0])
+
+algorithm = pg.ParameterTuner(custom_algorithm, 
+                                     max_vals=[0.99], 
+                                     min_vals=[0.5],
+                                     measure=pg.NDCG)
+```
+
+
+In the above snippet, we used the NDCG as the measure of choice for tuning.
+If no measure is provided, AUC is the default. If the application calls
+for it and you want to create a measure that is tied to a specific graph signal
+with the `as_supervised_method` like below, set *fraction_of_training=1* for the tuner. This
+forces the tuner to use the whole personalization to produce node ranks internally, 
+since we perform the validation split a priori. 
 
 ```python
 import pygrank as pg
-graph, personalization = ...
-algorithm_from_params = lambda params: pg.PageRank(alpha=params[0])
-scores_tuned = pg.ParameterTuner(algorithm_from_params, 
-                                     max_vals=[0.99], 
-                                     min_vals=[0.5],
-                                     measure=pg.NDCG).tune(personalization)
+
+_, graph, group = pg.load_one("eucore")
+signal = pg.to_signal(graph, group)
+
+train, test = pg.split(signal, training_samples=0.5)
+train, valid = pg.split(train, training_samples=0.5)
+
+tuner = pg.ParameterTuner(lambda params: pg.PageRank(alpha=params[0]),
+                             max_vals=[0.99],
+                             min_vals=[0.5],
+                             fraction_of_training=1,
+                             measure=pg.NDCG(valid, exclude=train+test).as_supervised_method())
+
+scores_pagerank = pg.PageRank(max_iters=1000)(train)
+scores_tuned = tuner(train)
 ```
 
+## Optimizations
 
 Graph convolutions are the most computationally-intensive operations
 node ranking algorithms employ, as their running time scales linearly with the 
