@@ -5,6 +5,7 @@ copyright: Copyright &copy; 2024 Emmanouil Krasanakis
 
 nav:
     - Home: 'index.md'
+    - Quickstart: 'basics/quickstart.md'
     - Basics:
         - 'basics/about.md'
         - 'basics/signals.md'
@@ -17,12 +18,12 @@ nav:
         - 'advanced/convergence.md'
         - 'advanced/graph_preprocessing.md'
     - Applications:
-        - 'advanced/quickstart.md'
         - 'advanced/community.md'
         - 'advanced/gnn.md'
     - For professionals:
         - 'tips/citations.md'
         - 'tips/big.md'
+        - 'tips/license.md'
     - API:
         - 'generated/graph_filters.md'
         - 'generated/postprocessors.md'

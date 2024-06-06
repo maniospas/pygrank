@@ -12,25 +12,20 @@ applies a graph filter, potentially postprocesses its outcome, and eventually ar
 
 <img src="../pipeline.png" alt="pipeline" style="width: 60%;">
 
-
-## Calling filters
-
 Filters are created based on a constructor that takes as input several keyword
 arguments affecting how they work. An exhaustive list of ready-to-use graph filters 
 and their constructors
-found [here](../generated/filters.md). After its initialization, a filter `alg` can run
+found [here](../generated/filters.md).
+More complicated node ranking algorithms can be obtained by applying postprocessors on
+filters. This is covered in the [next section](postprocessors.md).
+After its initialization, a filter `alg` can run
 with one of the following two patterns (these are interchangeable):
 
 * `ranks = alg(graph, personalization)`
 * `alg(pg.to_signal(graph, personalization))`
 
-More complicated node ranking algorithms can be obtained by applying postprocessors on
-filters. This is covered in the [next section](postprocessors.md).
 
-
-## Example
-
-Let us define an personalized PageRank filter. If the personalization is
+As an example, let us define an personalized PageRank filter. If the personalization is
 binary (i.e. all nodes have initial scores either 0 or 1) this algorithm
 is equivalent to a stochastic Markov process where it starts from the nodes
 with initial scores 1, iteratively jumps to neighbors randomly, and has

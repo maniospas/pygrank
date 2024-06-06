@@ -18,80 +18,8 @@ Fast node ranking algorithms on large graphs.
 # :hammer_and_wrench: Installation
 `pygrank` works with Python 3.9 or later. The latest version can be installed with pip per:
 
-```
-pip install --upgrade pygrank
-```
-
-To run the library on backpropagateable backends, 
-either change the automatically created
-configuration file (follow the instructions in the stderr console)
-or run parts of your code within a
-[context manager](https://book.pythontips.com/en/latest/context_managers.html)
-to override other configurations like this:
-
-```python
-import pygrank as pg
-with pg.Backend("tensorflow"):
-    ... # run your pygrank code here
-```
-
-Otherwise, everything runs on top of `numpy`, which
-is faster for forward passes. Node ranking algorithms 
-can be defined outside contexts and run inside.
-
-# :zap: Quickstart
-Before looking at details, here is fully functional
-pipeline that scores the importance of a node in relation to 
-a list of "seed" nodes within a graph's structure:
-
-```python
-import pygrank as pg
-graph, seeds, node = ...
-
-pre = pg.preprocessor(assume_immutability=True, normalization="symmetric")
-algorithm = pg.PageRank(alpha=0.85)+pre >> pg.Sweep() >> pg.Ordinals()
-ranks = algorithm(graph, seeds)
-print(ranks[node])
-print(algorithm.cite())
-```
-
-The graph can be created with `networkx` or, for faster computations,
-with the `pygrank.fastgraph` module. Nodes can hold any 
-kind of object or data type (you don't need to convert them to integers).
-
-The above snippet starts by defining a `preprocessor`, 
-which controls how graph adjacency matrices are normalized.
-In this case, a symmetric normalization
-is applied (which is ideal for undirected graphs) and we also
-assume graph immutability, i.e., that it will not change in the future.
-When this assumption is declared, the preprocessor hashes a lot of
-computations to considerably speed up experiments or autotuning.
-
-The snippet uses the [chain operator](docs/basics/functional.md)
-to wrap node ranking algorithms by various kinds of postprocessors.
-You can also put algorithms into each other's constructors
-if you are not a fan of functional programming.
-The chain starts from a pagerank graph filter with diffusion parameter
-0.85. Other filters can be declared, including automatically tuned ones.
-
-The produced algorithm is run as a callable,
-yielding a map between nodes and values 
-(in graph signal processing, such maps are called graph signals)
-and the value of a node is printed. Graph signals can
-also be created and directly parsed by algorithms, for example as:
-```
-signal = pg.to_signal(graph, {v: 1. for v in seeds})
-ranks = algorithm(signal)
-```
-
-Finally, the snippet prints a recommended citation for the algorithm.
-
-### More examples
-
-[Showcase](docs/advanced/quickstart.md) <br>
-[Big data FAQ](docs/tips/big.md) <br>
-[Downstream tasks](https://github.com/maniospas/pygrank-downstream) <br>
-
+# :link: Documentation
+**https://pygrank.readthedocs.io**
 
 # :brain: Overview
 Analyzing graph edges (links) between graph nodes can help 
@@ -123,9 +51,6 @@ Some of the library's advantages are:
 5. **Modular** components to be combined and a functional chain interface for complex combinations.
 6. **Fast** running time with highly optimized operations
 
-# :link: Material
-[Tutorials & Documentation](documentation/documentation.md) <br>
-[Functional Interface](docs/basics/functional.md)
 
 # :fire: Features
 * Graph filters

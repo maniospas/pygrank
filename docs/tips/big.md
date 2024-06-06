@@ -1,14 +1,13 @@
 # Big Graphs
 
-This documents provides a FAQ on how to handle big graphs, with millions
-or more of edges.
+This documents provides a FAQ on how to handle big graphs with millions of edges.
 
-### Which backend to use?
+### Which backend?
 
 Use *numpy* (the default backend). It's the most well-tested
 and memory efficient.
 
-### Which algorithm to use?
+### Which algorithm?
 
 `pygrank` algorithms are split into graph filters and postprocessors
 to augment their outcome. Here we touch on graph filters. 
@@ -23,29 +22,27 @@ algorithm = pg.PageRank(alpha=0.9, tol=1.E-9, max_iters=1000)
 
 For compatibility with `networkx` and other historical practices, 
 these are not the default parameters values.
-However, they tend to work well in big graphs. A little explanation on 
-the choices:
-- Personalized PageRank is equivalent to stochastic random
+However, they tend to work well in big graphs. As a little explanation on 
+the choices, personalized PageRank is equivalent to stochastic random
 walks with average length *1/(1-alpha)* hops away from
-seed nodes. 
-- At the same time, you need a small enough 
+seed nodes. At the same time, you need a small enough 
 numerical tolerance to make sure that your numer of seeds
 divided by your number of nodes is not immediately
-smaller than that.
-- Higher diffusion parameters *alpha* and
+smaller than that. Finaklly, higher diffusion parameters *alpha* and
 lower numerical tolerances increase the number of
 iterations it takes for recursive graph filters to converge.
 Thus, a higher cap to the computational limit should be
 placed to make sure that this is not exceeded before 
 convergence.
 
-:warning: As a last failsafe against unforeseen convergence properties,
-make sure that you run algorithms 
-with computational limits within allocated budget.
+!!! info 
+    As a last failsafe against unforeseen convergence properties,
+    make sure that you run algorithms 
+    with computational limits within allocated budget.
 
-### My communities do not comprise enough members.
+### Few data.
 
-Try to increase the receptive field of node ranking algorithms,
+If your communities have too few members, try to increase the receptive field of node ranking algorithms,
 for example by increasing *alpha* in pagerank. If you have increased
 the receptive field but require more expansions try applying
 the `SeedOversampling()` and, if you are fine with its computational
@@ -53,7 +50,7 @@ demands, `BoostedSeedOversampling()` postprocessors on your
 algorithms.
 
 
-### My graph is already a scipy sparse matrix.
+### Graph is already a scipy sparse matrix.
 
 Note that node ranking algorithms and graph signals
 typically require graphs. However, sometimes

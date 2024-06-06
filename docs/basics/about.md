@@ -2,7 +2,7 @@
 
 <img src="../architecture.png" alt="architecture" style="width: 40%;float: right;">
 
-At the core of `pygrank` lies the concept of *graph signals*, which map graph nodes to scores. 
+At the core of `pygrank` lies the concept of *graph signals*, which map graph nodes to numerical scores. 
 Supervised and unsupervised measures evaluate the predictive/ranking quality
 of graph signals. 
 
@@ -23,3 +23,4 @@ Here is a glossary of common concepts sorted alphabetically:
 | Personalization        | The graph signal inputted in grap filters. This is also known as graph signal priors or the personalization vector.                                                                                                                                                            |
 | Seeds                  | Example nodes that are known to belong to a community.                                                                                                                                                                                                                         |
 | Tuning                 | A process of determining algorithm hyper-parameters that optimize some evaluation measure.                                                                                                                                                                                     |
+

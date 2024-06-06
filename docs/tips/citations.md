@@ -1,18 +1,15 @@
 # Citations
 
 Several research outcomes have been implemented and integrated in `pygrank`.
-In addition to this package, please cite related publications, for example
-by modifying automatically generated descriptions (see below). 
-<br>
-<br>
-Do not forget to also cite dataset sources! Related instructions
+In addition to the package itself [krasanakis2022pygrank], please cite related publications, for example
+by modifying automatically generated descriptions (see below). Do not forget to also cite dataset sources! Related instructions
 can be found [here](../generated/datasets.md).
 
-## Automated Algorithm Citations
+## Autocite
 
 The `NodeRanking.cite()` method can be used to 
-automatically generate descriptions of algorithms, including
-publication citations. Reference names correspond to the list of
+automatically generate descriptions of algorithms that include
+references. Reference names correspond to the list of
 publication bibtex entries presented in the rest of the document.
 
 For example, the following snippet defines a node ranking algorithm
