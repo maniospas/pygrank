@@ -2,8 +2,8 @@
 
 ## Normalization
 
-Graph filters all use the same default graph normalization scheme
-that performs symmetric (i.e. Laplacian-like) normalization 
+Graph filters all use the same default graph normalization scheme,
+which performs symmetric (that is, Laplacian-like) normalization 
 for undirected graphs and column-wise normalization that
 follows a true probabilistic formulation of transition probabilities
 for directed graphs, such as `DiGraph` instances. The type of
@@ -30,13 +30,12 @@ To create smoother versions of adjacency matrices,
 a *renormalization* argument may be provided
 to add a multiple of the unit matrix to the adjacency, a concept 
 known as the renormalization trick.
-This by default 0, but can help shrink the spectrum. For example,
+This by default 0 but can help shrink the spectrum. For example,
 you can create a strongly local version of the adjacency matrix like this:
 
 ```python
 alg = Algorithm(renormalization=2)
 ```
-
 
 ## Caching
 
@@ -48,12 +47,12 @@ provides a way to cache the normalization
 during large-scale experiments by the same algorithm for 
 the same graphs by passing an argument `assume_immutability=True`
 to the algorithm's constructor. This indicates that
-the the graph will not change between runs of the algorithm
+the graph will not change between runs of the algorithm
 and hence computes the normalization only once. 
 The hashing mechanism that distinguishes if computations
-already took place uses Python's object hash method, 
-so a different instance of the same graph (that is, a copy)
-will recompute the normalization.
+already took place uses Python's object hash method. 
+Consequently, a different instance of the same graph (such as 
+a deep copy) will recompute the normalization.
 
 !!! warning
     Do not alter graph objects after passing them to
@@ -86,7 +85,7 @@ constructors. In this case, the `normalization`, `renormalization`
 and `assume_immutability`
 arguments should be passed to the preprocessor and will be ignored by the
 constructors (what would otherwise happen is that the constructors
-would create a prerpocessor with these arguments).
+would create a preprocessor with these arguments).
 
 Basically, when the default value `preprocessor=None` is passed to ranking 
 algorithm constructors, these create a new preprocessing instance
@@ -94,8 +93,8 @@ with the `normalization`, `renormalization` and `assume_immutability`
 values passed
 to their constructor. These two arguments are completely ignored
 if a preprocessor instance is passed to the ranking algorithm.
-Direct use of these arguments without needing to instantiate a
-preprocessor was demonstrated in the previous code example.
+Direct use of these arguments, without needing to instantiate a preprocessor, 
+was demonstrated in the previous code example.
 
 Using the same outcome of graph preprocessing 
 to speed up multiple rank calls to the same graph by
@@ -120,25 +119,27 @@ ranks2 = algorithm2(graph, personalization2) # does not re-compute the normaliza
 
 ## Cross-origin resources
 
-Preprocessing admits a *cors* argument that toggles
-an optimization for huge speedups when
-constantly switching between backends at the
-cost of additional memory and badly-defined behavior.
-Default is False, which saves a lot of memory. However,
-the maximum used memory when using *cors*
-remains the same when processing one graph and
-switching between up to two backends
-out of which one is "numpy".
+Preprocessing admits a `cors` argument that toggles
+huge speedups when constantly switching between backends at the
+cost of additional memory and unexpected behavior when
+the following guidelines are not met.
+Default is `cors=False`, which saves a lot of memory, 
+though the maximum used memory when the optimization of
+`cors=True` are enabled remains the same when two conditions are met:
+
+1. Only one graph is processed.
+2. There is switching only between up to two backends, out of which one is `"numpy"`.
 
 !!! warning 
     Enabling cors will not run certain parts of
-    preprocessing, because it performs immediate backend switching
-    with cached versions of the adjacency matrix. There is
+    preprocessing, because it performs immediate backend 
+    switching with cached versions of the adjacency matrix. There is
     no error checking involved. For this reason:
     
     - Remember that the only preprocessor that will actually
     run computations is the first one that runs. If you
-    are unsure, either set the same arguments or generate
+    are unsure, either set the same preprocessor arguments 
+    to all algorithms, or generate
     the preprocessor first and share it between all algorithms.
     - Make sure that `cors=True` holds for every
     preprocessor and graph filter that will use
@@ -146,11 +147,13 @@ out of which one is "numpy".
 
     **YOU HAVE BEEN WARNED.**
 
-If *cors* is enabled (set to True), backend primitives
+If `cors` is enabled, backend primitives
 holding the outcome of graph preprocessing are
-enriched with additional private metadata that enable their
-usage as base graphs when passing through other preprocessors 
-in other backends. There is one main usage pattern:
+enriched with additional metadata that point to what
+their conversion looks like in different backends.
+This is a type of caching that subsequent preprocessor
+runs use to avoid performing the preprocessing altogether. 
+There is one main usage pattern of this functionality:
 obtaining an adjacency
 matrix that represents the graph, but which is a thin wrapper
 around fast-switching backend primitives. That is,
@@ -164,17 +167,16 @@ This is technically an adjacency matrix but has
 all the necessary ducktyping to be considered 
 a graph by `pygrank`. If you plan to stay within
 one backend, you can also run the same command
-without enabling cors anywhere and
+without enabling cors and
 construct signals per normal with 
 `pg.to_signal(graph, personalization_data)`.
 However, enabling cors is mandatory
-when creating or planning to use
-graph signals with the adjacency
-you defined at different backends.
+when passing the preprocessor's outcome to
+different backends.
 
 Usefulness of cross-origin resources in demonstrated in the
 following graph neural network example, where training
-time is sped up by 25% when `cors=True` in the
+time is sped up by 25% when setting `cors=True` in the
 constructor of the `GenericGraphFilter`:
 
 ```python

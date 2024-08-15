@@ -1,15 +1,16 @@
 # Evaluation
 
-`pygrank` provides a wide breadth of measures
-that can assess node ranking algorithms, as well as comprehensive
-code interfaces with which to quickly set up experiments at scale to compare algorithms.
-An offshoot of these capabilities is autotuning, which is very useful in practice
-and covered [here](autotuning.md).
+`pygrank` contains a wide breadth of measures
+that can assess node ranking algorithms. It also provides as comprehensive
+code interfaces with which to quickly set up experiments at scale, for
+example to compare algorithms.
+An offshoot of these capabilities is autotuning, which is useful for deployment
+of algorithms in the wild and covered [here](autotuning.md).
 
 ## Measures
 
-Provided measures are mainly a) supervised in that they compare graph signal posteriors
-(the node scores outputted by node ranking algorithms)
+Provided measures are mainly a) supervised in that they compare graph signal 
+posteriors (the node scores outputted by node ranking algorithms)
 with some known ground truth ones, or b) unsupervised in that they assess whether 
 posteriors satisfy a desired property, such as low conductance or density.
 These two types of measures are instantiated with keyword parameters.

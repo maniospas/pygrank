@@ -35,7 +35,7 @@ algorithm = pg.PageRank() >> pg.Sweep() >> pg.Normalize("sum")
 This indicates that we start from the first algorithm and then
 wrap around it all subsequent postprocessors. All
 postprocessor constructors can in principle be defined without 
-a base algorithm, so the above chain notation retroactively 
+a base algorithm; the above chain notation retroactively 
 assigns those base algorithms.
 
 ## Chaining Personalization Preprocessing

@@ -1,8 +1,9 @@
 # Autotuning
 
 Beyond the ability to compare node ranking algorithms,
-we provide the ability to automatically tune node ranking 
-algorithms or select the best ones with respect to optimizing a measure
+we provide the ability to automatically tune them
+or select the best among several options. The main strategy to do this
+consists of optimizing a measure
 based on the graph and personalization at hand. This process is abstracted
 through a `pygrank.Tuner` base class, which wraps
 any kind of node ranking algorithm. Ideally, this would wrap end-product

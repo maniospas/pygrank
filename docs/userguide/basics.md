@@ -12,8 +12,8 @@ components, which sometimes may require rerunning the whole process.
 Finally, supervised and unsupervised measures evaluate the 
 predictive or ranking quality of posterior signals. 
 
-Below is presented a typical node ranking 
-pipeline that starts from a known personalization, 
+A typical node ranking pipeline is shown below.
+This starts from a known personalization, 
 applies a graph filter, potentially postprocesses its outcome, 
 and eventually arrives at new node values.
 
@@ -28,7 +28,8 @@ overloaded to automatically construct signals if different types
 of arguments are provided. The example below creates a 
 signal attached on a `networkx` graph that includes 
 nodes 'A' and 'C' with values of 3 and 2 respectively and sets 0 
-to all other nodes. Learn about different graph types you can
+to all other nodes in the graph. 
+Learn about different graph types you can
 work with in the setup guide [here](setup.md).
 
 
@@ -49,7 +50,10 @@ print(signal['A'], signal['B'])  # 3.0 0.0
 In general, graph signals can be constructed with the
 expression, `pg.to_signal(graph, obj)` that takes
 as input a graph and some data. These data can be
-in various formats listed below:
+in various formats listed below. These may be more convenient 
+to extract in different applications, whereas a
+runtime exception is raised if the provided format
+is invalid.
 
 | Format                                                    | Description                                                                                                                                                                                        | Example `obj`            |
 |-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
@@ -71,9 +75,8 @@ format, if needed.
 
 Arithmetic operations defined by the active backend
 are also directly applicable to signals by implying the `np` attribute,
-as shown below. All operations involving signals should occur on the same
-graph and the library will create an error message if this sanity
-check is not met.
+as shown below. All operations between multiple signals should occur on the 
+same graph; a runtime exception is raised if this sanity check is not met.
 
 ```python
 signal = signal / pg.sum(signal)
@@ -85,8 +88,9 @@ print([(k,v) for k,v in signal.items()])  # [('A', 0.6), ('B', 0.0), ('C', 0.4),
 Graph filters are algorithms that spread the node values stored in graph 
 signals through graphs by diffusing them through edges. The original 
 signal is often called the *personalization*, and its values
-indicates the likelihood of respective nodes obtaining a certain 
-property, such as being members of a structural or metadata community. 
+indicate the likelihood of respective nodes obtaining a certain 
+property. For example, node values may reflect a score
+of belonging to a structural or metadata community. 
 Graph filters refine these initial estimates by providing improved 
 (probability) scores for all nodes.
 Their outcomes are new *posterior* signals
@@ -124,9 +128,10 @@ perform `"col"` (column-wise) normalization of the adjacency matrix to make
 jumps to neighbors have equal probabilities. The alternative would be `"symmetric"`
 normalization, in which case the probabilistic formulation is violated but
 the same score transfer occurs between pairs of linked nodes for both diffusion directions.
-If no normalization argument is provided, it is automatically selected,
-depending on whether the graph is directed or undirected
-respectively. Find more on this topic and more advanced options
+If no normalization argument is provided, the type of normalization is automatically selected
+based on whether the graph is directed or undirected
+respectively, given that undirected graphs typically model symmetric relations.
+Find more on this topic and more advanced options
 for graph preprocessing [here](preprocessing.md). For now, keep in mind the following property.
 
 !!! info
@@ -165,7 +170,7 @@ algorithm = pg.PageRank(alpha=0.99, normalization="col", tol=1.E-9, max_iters=20
     Filters like PageRank focus on diffusing scores fewer hops away
     and are thus low-pass in that they reduce the graph adjacency matrix's 
     eigenvalues, which are often considered the spectrum.
-    In practice, this corresponds to smoothening the personalization through 
+    In practice, this corresponds to smoothing the personalization through 
     the graph's structure.
 
 Having defined a node ranking algorithm, we now pass 
@@ -198,11 +203,9 @@ Graph signals outputted by filters
 often require additional processing steps, for example that perform
 normalization, improve filtering quality in terms of satisfying
 certain properties, or apply fairness constraints.
-Postptprocessors wrap base filters to modify their outcomes, while the resulting
-node ranking algorithms are called as if they were still filters. The filters
-can either be supplied to postprocessor constructors, 
-or the postprocessors may be initialized
-from the rest of their arguments and attached onto filters afterwards with the 
+Postprocessors wrap base filters to modify their outcomes, while the resulting
+node ranking algorithms are called as if they were still filters. Filters can either 
+be supplied to postprocessor constructors or attached to them afterwards with the 
 functional chain pattern `algorithm = filter >> postprocessor`.
 
 
@@ -262,7 +265,7 @@ is automatically instantiated by borrowing whichever extra arguments it can
 from those passed to algorithm constructors. These arguments can be:
 
 - *tol:* Indicates the numerical tolerance level required for convergence (default is 1.E-6).
-- *error_type:* Indicates how differences between two graph signals are computed. The default value is `pygrank.Mabs` but any other supervised [measure](../userguide/evaluation.md) that computes the differences between consecutive iterations can be used. The string "iters" can also be used to make the algorithm stop only when max_iters are reached (see below).
+- *error_type:* Indicates how differences between two graph signals are computed. The default value is `pygrank.Mabs` but any other supervised [measure](../userguide/evaluation.md) that computes the differences between consecutive iterations can be used. The string "iters" can also be used to make the algorithm stop only when `max_iters` are reached (see below).
 - *max_iters:* Indicates the maximum number of iterations the algorithm can run for (default is 100). This quantity works as a safety net to guarantee algorithm termination. 
 
 Sometimes, it suffices to reach a robust node rank order instead of precise 

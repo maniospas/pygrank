@@ -1,7 +1,7 @@
 # Setup 
 
-Create a (virtual) environment with Python 3.9 or later
-and install or upgrade to the latest version of `pygrank` with:
+Create a (virtual) environment with Python 3.9 or later.
+Then install or upgrade to the latest version of `pygrank` with:
 
 ```bash
 pip install --upgrade pygrank
@@ -9,7 +9,7 @@ pip install --upgrade pygrank
 
 ## Creating graphs
 
-When working n practical problems,
+When working on practical problems,
 use `networkx` to construct graphs
 by adding edges between Python objects.
 For example, you can construct a graph
@@ -32,7 +32,7 @@ On the other hand,
 `pygrank` is typically interested in 
 converting those graphs to sparse matrices of respective
 backends. For this reason, the library provides its own
-trimmed down `pygrank.Graph` class that implements a subset of 
+trimmed down `pygrank.Graph` class that implements a subset 
 of graph operations needed for node ranking algorithms
 and speeds up the `add_edge method`. Instances of this class
 can be created with the pattern:
@@ -62,29 +62,34 @@ and enable the rest below.
 To switch between backends, either use the `load_backend(name)`
 command or define an execution context that temporarily switches
 to the specified backend and then reverts to the previous one,
-as shown below. 
-This is the recommended approach.
-Switching backends only affects how new operations are executed. 
-Data types are automatically converted as needed during execution.
+as shown below. This is the recommended approach, especially for
+dependent software that targets specific operational environments.
+
+Switching backends only affects how new operations are executed, but not what 
+they do. At the same time, data types are automatically converted as needed during execution.
+If backend loading fails, a runtim exception is raised. To
+use non-`"numpy"` backends, you need to install additional dependencies
+other those of `pygrank`.
 
 
 ```python
 import pygrank as pg
 
-algorihtm = pg.PageRank()
+algorithm = pg.PageRank()
 with pg.Backend("tensorflow"):  # tensorflow needs to be installed
-    scores = algorihtm(...)
+    scores = algorithm(...)
     print(scores.np)  # a tensor
 print(scores.np)  # an array now that we switched back
 ```
 
-When importing `pygrank` a message appears indicating  that `"numpy"` is the default backend.
+When importing `pygrank` a message appears indicating that `"numpy"` is the default backend.
 The same message points to a JSON configuration file stored under *home/.pygrank*,
 alongside any automatically downloaded content. This 
 file specifies the default backend to be set upon the library's
 first import, initialization parameters, and the option 
 to silence the reminder message. These settings can be 
-edited either directly on the file or programmatically with:
+edited either directly on the file or programmatically when 
+file system access is less convenient with:
 
 ```python
 pg.set_backend_preference(name, reminder=True, **init)  # essentially call pg.load_backend(name, **init) on pygrank's first import
@@ -104,20 +109,20 @@ The configuration file's contents looks like this:
 Below is a list of supported backends with installation instructions and comments.
 
 ### <span class="component">numpy</span>
-<b class="parameters">About</b><br>This is the default backend and is enabled by default. Internally,
-it employs `scipy` for sparse-dense matrix operations. All other backends rely on `scipy` sparse matrices
-as an intermediate step when initializing their own sparse matrix types. This backend is
-best suited to general-purpose numerical computations and
-handling very large graphs with memory efficiency, but is not
-the fastest option.
+<b class="parameters">About</b><br>This is the backend enabled by default. Internally,
+it employs `scipy` for sparse-dense matrix operations. All other backends rely on 
+`scipy` sparse matrices too, albeit as an intermediate step when initializing their own sparse 
+matrix types. `"numpy"` is best suited to general-purpose numerical computations 
+and handling very large graphs with memory efficiency. However, it is not the fastest option
+when GPUs are available.
 <br>
 <b class="parameters">Links</b><br> [numpy](https://numpy.org/)<br>[scipy](https://scipy.org/)
 
 ### <span class="component">tensorflow</span>
-<b class="parameters">About</b><br>Performs computations within the `tensorflow` execution environment.
-The latter is an open-source platform for machine learning developed by the Google Brain team.
-There 
-are two modes in which this backend can be executed: `"dense"` (default) and `"sparse"`.
+<b class="parameters">About</b><br>Performs computations within the `tensorflow` 
+execution environment. The latter is an open-source platform for machine learning 
+developed by the Google Brain team. There 
+are two modes in which this backend can work in: `"dense"` (default) and `"sparse"`.
 The mode may be provided as additional arguments to the backend loading call like this:
 
 ```python
@@ -126,13 +131,14 @@ with pg.Backend("tensorflow", mode="dense", device="auto"):
     ... # code to run on pytorch here
 ```
 
-In dense mode, the tensorflow backend attempts to store graphs in dense square
-matrices that take full advantage of tensorflow's parallelization.
-If there is not enough memory to allocate a sparse adjacency matrix,
-the backend generates a sparse version and creates a warning.
-The backend's initialization also accepts a device string or object to
+Dense mode attempts to store graphs in dense square
+matrices that take full advantage of tensorflow's parallelization,
+which is several times faster than sparse counterparts.
+If there is not enough memory to allocate the necessary dense matrices,
+this backend generates a sparse version and creates a warning.
+Its initialization also accepts an optional device string or object to
 which computations should be internally transferred. If provided, this needs to
-be a tensorflow device name.
+be a tensorflow device or device name.
 <br>
 <b class="parameters">Installation</b><br> `pip install tensorflow[and-cuda]`<br>On Windows install WSL2 (Windows Subsystem for Linux) first.<br>
 <b class="parameters">Links</b><br> [tensorflow](https://www.tensorflow.org/install)
@@ -140,9 +146,9 @@ be a tensorflow device name.
 
 ### <span class="component">pytorch</span>
 <b class="parameters">About</b><br>Performs computations within the `pytorch` execution environment.
-The latter is an open-source platform for machine learning developed by Meta's AI Research lab.
-Similarly to `"tensorflow"`, 
-are two modes in which this backend can be executed: `"dense"` (default) and `"sparse"`.
+This is an open-source platform for machine learning developed by Meta's AI Research lab.
+Similarly to `"tensorflow"`, there are
+are two modes in which this backend can work in: `"dense"` (default) and `"sparse"`.
 The mode may be provided as additional arguments to the backend loading call like this:
 
 ```python
@@ -151,17 +157,19 @@ with pg.Backend("pytorch", mode="dense", device="auto"):
     ... # code to run on pytorch
 ```
 
-In dense mode, the pytorch backend attempts to store graphs in dense square
-matrices that take full advantage of pytorch's device parallelization.
-If there is not enough memory to allocate a sparse adjacency matrix,
-the backend generates a sparse version and creates a warning.
-The backend's initialization also accepts a device string or object to
+Dense mode attempts to store graphs in dense square
+matrices that take full advantage of pytorch's device parallelization,
+which is several times faster than sparse counterparts.
+If there is not enough memory to allocate the necessary dense matrices,
+this backend generates a sparse version and creates a warning.
+Its initialization also accepts a device string or object to
 which computations should be internally transferred. If provided, this needs to
 be one among pytorch's available devices (typically `"cuda"` or `"cpu"`).
 If not provided, the device will be the same as the one selected during the 
 last time this backend was loaded. If this is the first time,
 the device will be automatically selected to be `"cuda"`
-if the latter is properly integrated, and `"cpu"` otherwise.
+when the latter is properly integrated, and the less performant 
+"cpu"` otherwise.
 <br>
 <b class="parameters">Installation</b><br> For full installation instructions visit pytorch's website in the links below.<br>
 <b class="parameters">Links</b><br> [pytorch](https://pytorch.org/get-started/locally)
@@ -186,7 +194,7 @@ with pg.Backend("torch_sparse", device=device):
 ```
 
 !!! info
-    `"torch_sparse"` is near-identical as `"pytorch"`
+    `"torch_sparse"` is nearly identical to `"pytorch"`
     in sparse mode but is much faster in preprocessing adjacency matrices.
 
 <b class="parameters">Installation</b><br> For full installation instructions visit pytorch's website in the links below.<br>
@@ -204,9 +212,10 @@ but is slower than other backends for dense graphs.
 
 ### <span class="component">dask</span>
 <b class="parameters">About</b><br>Offers the distributed computational model of dask.distributed. 
-Enables distributed computing and parallel processing, making it ideal for very large graphs that need 
-to be processed in a distributed manner. 
-This backend's instantiation accepts additional positional and a keyword argument `chunks=8` to denote
+Enables distributed computing and parallel processing, making it ideal for very large graphs 
+that require distributed processing. 
+This backend's instantiation accepts additional positional and a keyword argument 
+`chunks` (with default value `8`) to denote
 the number of chunks to which sparse matrices are split (the maximum number of engaged 
 distributed works), and keyword arguments to pass to the dask client's constructor.
 <br>
