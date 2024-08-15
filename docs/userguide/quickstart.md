@@ -11,7 +11,7 @@ hk5_advanced = hk5 >> pg.SeedOversampling() >> pg.Sweep() >> pg.Normalize("max")
 ```
 
 ## 2. Load a graph and community
-Automatically load a graph and a community of nodes with a shared attribute. You can also create a custom `networkx` graph. Run the algorithm to get a graph signal that maps nodes to scores indicating structural proximity to community members.
+Automatically load a graph alongside a community of nodes with a shared attribute. You can also create a custom `networkx` graph. Run the algorithm to get a graph signal that maps nodes to scores indicating structural proximity to community members.
 
 ```python
 _, graph, community = next(pg.load_datasets_one_community(["eucore"]))

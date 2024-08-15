@@ -220,8 +220,8 @@ class Tensortune(pg.Postprocessor):
                 if patience == 0:
                     break
                     # repeats -= 1
-                    if best_loss > best_repeat_loss:
-                        break
+                    #if best_loss > best_repeat_loss:
+                    #    break
                     best_repeat_loss = best_loss
                     patience = max_patience
                     self.depth += 1

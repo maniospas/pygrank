@@ -1,14 +1,18 @@
 # The Basics
 
 At the core of `pygrank` lies the concept of *graph signals*, 
-which map graph nodes to numerical scores. Supervised and 
-unsupervised measures evaluate the predictive/ranking 
-quality of graph signals. The library's main purpose 
-is to define and efficiently run node ranking algorithms. 
-These start from *graph filters*, which iteratively 
-diffuse the scores of nodes to their connected neighbors. 
-The output of filters can be processed with additional 
-components. Below is presented a typical node ranking 
+which map graph nodes to numerical scores. Its main 
+purpose is to define and efficiently run node ranking algorithms
+by taking as inputs some prior signals (usually serving as 
+one-class examples) and outputting improved posterior signals.
+The library's node ranking algorithms are based on *graph filters*,
+which iteratively diffuse the scores of nodes to their connected 
+neighbors. The outputs of filters may be processed with additional 
+components, which sometimes may require rerunning the whole process. 
+Finally, supervised and unsupervised measures evaluate the 
+predictive or ranking quality of posterior signals. 
+
+Below is presented a typical node ranking 
 pipeline that starts from a known personalization, 
 applies a graph filter, potentially postprocesses its outcome, 
 and eventually arrives at new node values.
@@ -19,10 +23,10 @@ and eventually arrives at new node values.
 
 A *graph signal* is a way to organize numerical values that correspond 
 to the nodes of a graph. Signals are used as the inputs and outputs 
-of node ranking algorithms, although calls to the latter are 
-overloaded to automatically construct signals if different arguments 
-are provided. Below is how to create a simple signal attached on
-a `nextoworkx` graph that includes 
+of node ranking algorithms, although calls to the algorithms are 
+overloaded to automatically construct signals if different types 
+of arguments are provided. The example below creates a 
+signal attached on a `networkx` graph that includes 
 nodes 'A' and 'C' with values of 3 and 2 respectively and sets 0 
 to all other nodes. Learn about different graph types you can
 work with in the setup guide [here](setup.md).
@@ -55,20 +59,17 @@ in various formats listed below:
 | `None`                                                    | Interpreted as a signal of ones.                                                                                                                                                                   | `None`                   |
 
 
-Internally, signal
-values are converted to second of the above formats
-for fast computations. These values
-can be accessed through the `signal.np` attribute. 
-For example, by default the running backend will be 
-`"numpy"`, in which case the internal representation
-will be numpy array.
-Different data types may be held, depending on the *current*
-backend, whereas switching backends after a signal is defined
-or computed will convert
-representations to the new backend's preferred format
-if needed. 
+Internally, signals are converted to the second of the above 
+formats to enable fast data transfer and computations. This format's
+raw data can be accessed through the `signal.np` attribute. 
+For example, while the active backend is `"numpy"` (this is the default
+if no backend is specified), internal representations will be numpy arrays.
+Different data types may be retrieved, depending on the *current*
+backend. That is, switching backends after a signal is defined
+or computed will convert representations to the new backend's preferred 
+format, if needed. 
 
-Arithmetic operations defined by the running backend
+Arithmetic operations defined by the active backend
 are also directly applicable to signals by implying the `np` attribute,
 as shown below. All operations involving signals should occur on the same
 graph and the library will create an error message if this sanity
@@ -81,29 +82,29 @@ print([(k,v) for k,v in signal.items()])  # [('A', 0.6), ('B', 0.0), ('C', 0.4),
 
 ## Graph Filters
 
-Graph filters are algorithms that spread the node values stored in graph signals
-through graphs by diffusing them through edges. The original signal is called 
-the *personalization*, and its values
-indicates the likelihood of respective nodes obtaining a certain property, 
-such as being members
-of a structural or metadata community. Graph filters refine these
-initial estimates by providing improved (probability) scores for all nodes.
+Graph filters are algorithms that spread the node values stored in graph 
+signals through graphs by diffusing them through edges. The original 
+signal is often called the *personalization*, and its values
+indicates the likelihood of respective nodes obtaining a certain 
+property, such as being members of a structural or metadata community. 
+Graph filters refine these initial estimates by providing improved 
+(probability) scores for all nodes.
 Their outcomes are new *posterior* signals
 whose scores can be thought of a weighted gathering of scores
 from a different number of hops away.
 
-Filters are callables (after defining them, use them
-as functions) that are instantiated by respective classes;
-their constructors takes as input several keyword
-arguments affecting how they work, so that you can reuse the same
-filter configurations in your code. 
-Find an exhaustive list of ready-to-use graph filters 
-and their constructors
-found [here](../generated/graph_filters.md).
-More complicated node ranking algorithms can be obtained by applying postprocessors on
-filters, which is covered [later](#postprocessors).
-After initialization with chosen parameters, a filter `alg` can run
-with one of the following three patterns, where the first two are interchangeable:
+Filters are callables, which means that after defining them you
+can use them like functions. They are instantiated by respective 
+classes whose constructors take as input several keyword
+arguments affecting hyperparameters and approximation strategies.
+This way, you can reuse the same filter configurations in your code
+by reusing the callables. Find an exhaustive list of ready-to-run 
+filters and their constructors [here](../generated/graph_filters.md).
+More complicated node ranking algorithms can be obtained by applying 
+postprocessors on filters, which is covered [later](#postprocessors).
+After initialization with chosen parameters, a filter `alg` can be
+called with one of the following three patterns, where the first 
+two perform the same internal computations:
 
 | Pattern                                              | Description                                                                                                                                               |
 |------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -113,27 +114,38 @@ with one of the following three patterns, where the first two are interchangeabl
 
 As an example, let us define a personalized PageRank filter. If the personalization is
 binary (meaning that all nodes have initial scores either 0 or 1) this algorithm
-is equivalent to a stochastic Markov process where it starts from the nodes
+is equivalent to a stochastic Markov process that starts from the nodes
 with initial scores 1, iteratively jumps to neighbors randomly, and has
-a fixed probability *1-alpha* to restart. Node scores capture the probabilities 
-of arriving at each node.
+a fixed probability *1-alpha* to restart. In this setting, node scores capture 
+the probabilities of arriving at each node.
 
 We use a restart probability at each step *1-alpha=0.01* and
 perform `"col"` (column-wise) normalization of the adjacency matrix to make
 jumps to neighbors have equal probabilities. The alternative would be `"symmetric"`
-normalization, in which case the same score transfer occurs between two nodes
-for both diffusion directions. Without an argument, the type of
-normalization is selected based on whether the graph is directed or undirected
+normalization, in which case the probabilistic formulation is violated but
+the same score transfer occurs between pairs of linked nodes for both diffusion directions.
+If no normalization argument is provided, it is automatically selected,
+depending on whether the graph is directed or undirected
 respectively. Find more on this topic and more advanced options
-for graph preprocessing [here](preprocessing.md).
+for graph preprocessing [here](preprocessing.md). For now, keep in mind the following property.
+
+!!! info
+    When the normalization strategy is `"symmetric"` graph filters
+    have a well-understood effect on the diffusion process.
+    In particular, their outputs can be written as polynomials of the normalized 
+    adjacency matrix right-multiplied with the personalization's vector representation.
+    Then, the adjacency matrix's eigenvalues that coarsely bound the diffusion "speed"
+    are transformed via the same polynomial.
 
 We also stop the algorithm at numerical
-tolerance *1.E-9*. Smaller tolerances are more accurate in approximating solving
-each algorithm's exact outputs but take longer to converge. Since this is
-a particularly hard graph to rank despite having only a few nodes , we increase 
-the budget for iterations to *2000*; otherwise, pygrank throws a security exception 
+tolerance *1.E-9*. Smaller tolerances are more accurate in approximating
+each algorithm's exact theoretical outputs but take longer to converge. 
+This is a particularly hard graph for ranking to converge,
+despite having only a few nodes. Thus, we increase 
+the budget for iterations to *2000*; otherwise, `pygrank` throws a security exception 
 once the default maximum of *100* iterations is reached. An advanced
 discussion on how to define different convergence criteria is presented [later](#convergence).
+For graphs with many nodes fewer iterations typically suffice.
 
 ```python
 import pygrank as pg
@@ -151,9 +163,10 @@ algorithm = pg.PageRank(alpha=0.99, normalization="col", tol=1.E-9, max_iters=20
 
 !!! info
     Filters like PageRank focus on diffusing scores fewer hops away
-    and are thus low-pass in that they reduce the graph adjacency matrix's eigenvalues,
-    which are often considered the spectrum.
-    In practice, this corresponds to smoothening the personalization through the graph's structure.
+    and are thus low-pass in that they reduce the graph adjacency matrix's 
+    eigenvalues, which are often considered the spectrum.
+    In practice, this corresponds to smoothening the personalization through 
+    the graph's structure.
 
 Having defined a node ranking algorithm, we now pass 
 to it a graph signal.

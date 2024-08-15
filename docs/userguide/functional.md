@@ -12,10 +12,9 @@ complicated schemas. Some postprocessors iterate over their
 base algorithms, so a full chain of wrapped algorithms is
 first defined.
 
-For example, to apply the sweep procedure on personalized
+The following example applies the sweep procedure on personalized
 pagerank and normalize the final outputs by dividing with
-their sum, the object-oriented interface of the library can 
-define a new algorithm per:
+their sum. The library's object-oriented interface is used:
 
 ```python
 import pygrank as pg
@@ -23,9 +22,9 @@ import pygrank as pg
 algorithm = pg.Normalize("sum", pg.Sweep(pg.PageRank()))
 ```
 
-This scheme can get rather complicated, so the library also
-implements the `>>` operator to annotate transfer of algorithms.
-Simply put, the above code can be written as:
+This scheme can get rather complicated, so `pygrank` also
+overloads the `>>` operator to annotate transfer of algorithm
+outputs. Simply put, the above example can be rewritten as:
 
 ```python
 import pygrank as pg
@@ -36,7 +35,8 @@ algorithm = pg.PageRank() >> pg.Sweep() >> pg.Normalize("sum")
 This indicates that we start from the first algorithm and then
 wrap around it all subsequent postprocessors. All
 postprocessor constructors can in principle be defined without 
-a base algorithm, so the chain assigns those.
+a base algorithm, so the above chain notation retroactively 
+assigns those base algorithms.
 
 ## Chaining Personalization Preprocessing
 

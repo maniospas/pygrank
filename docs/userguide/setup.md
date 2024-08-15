@@ -61,9 +61,11 @@ and enable the rest below.
 
 To switch between backends, either use the `load_backend(name)`
 command or define an execution context that temporarily switches
-to the specified backend and then reverts to the previous one. 
-This is the recommended approach, as demonstrated below. 
-Switching backends only affects how new operations are executed. Data types are automatically converted as needed, and caching optimizations are tied to the backend.
+to the specified backend and then reverts to the previous one,
+as shown below. 
+This is the recommended approach.
+Switching backends only affects how new operations are executed. 
+Data types are automatically converted as needed during execution.
 
 
 ```python
@@ -78,11 +80,11 @@ print(scores.np)  # an array now that we switched back
 
 When importing `pygrank` a message appears indicating  that `"numpy"` is the default backend.
 The same message points to a JSON configuration file stored under *home/.pygrank*,
-alongside any automatically downloaded content. The configuration 
+alongside any automatically downloaded content. This 
 file specifies the default backend to be set upon the library's
-first import, initialization parameters for that backend, and the option 
-to silence the reminder message. These options can either be 
-edited directly on the file or programmatically set with:
+first import, initialization parameters, and the option 
+to silence the reminder message. These settings can be 
+edited either directly on the file or programmatically with:
 
 ```python
 pg.set_backend_preference(name, reminder=True, **init)  # essentially call pg.load_backend(name, **init) on pygrank's first import

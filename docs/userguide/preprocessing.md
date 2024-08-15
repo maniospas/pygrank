@@ -22,14 +22,15 @@ can have the following values:
 | callable      | A callable applied to a `scipy` sparse adjacency matrix of the "numpy" backend (irrespective of the actually active backend). When applied, it ignores the preprocessor's *reduction* argument. |
 
 Additionally, a *transform_adjacency* method can be provided
-to modify the final adjacency matrix after all computations conclude.
-This method runs within the currently active backend.
+to modify the final adjacency matrix. This is applied after 
+all other computations conclude and runs within the currently 
+active backend.
 By default this is a tautology `lambda x: x`.
 To create smoother versions of adjacency matrices,
-*renormalization* argument may be provided
-to add a multiple of the unit matrix to the adjacency matrix,
-a concept called the renormalization trick.
-This by default 0, but can help shrink the spectrum.For example,
+a *renormalization* argument may be provided
+to add a multiple of the unit matrix to the adjacency, a concept 
+known as the renormalization trick.
+This by default 0, but can help shrink the spectrum. For example,
 you can create a strongly local version of the adjacency matrix like this:
 
 ```python
@@ -37,33 +38,33 @@ alg = Algorithm(renormalization=2)
 ```
 
 
+## Caching
+
 In all cases, adjacency matrix normalization involves the
 computationally intensive operation of converting the graph 
 into a scipy sparse matrix each time node
 ranking algorithms are called. `pygrank`
-provides a way to avoid recomputing the normalization
+provides a way to cache the normalization
 during large-scale experiments by the same algorithm for 
 the same graphs by passing an argument `assume_immutability=True`
-to the algorithms's constructor, which indicates that
-the the graph does not change between runs of the algorithm
-and hence computes the normalization only once for each given
-graph, a process known as hashing. 
-Hashing only uses the Python object's hash method, 
-so a different instance of the same graph will recompute the 
-normalization if it points at a different memory location.
-
+to the algorithm's constructor. This indicates that
+the the graph will not change between runs of the algorithm
+and hence computes the normalization only once. 
+The hashing mechanism that distinguishes if computations
+already took place uses Python's object hash method, 
+so a different instance of the same graph (that is, a copy)
+will recompute the normalization.
 
 !!! warning
     Do not alter graph objects after passing them to
     calls of node ranking algorithms for the first time
     if you set `assume_immutability=True`. If altering the
-    graph is necessary midway through your code, create a copy
-    instance, for example with one of *networkx*'s in-built methods and
-    edit that one.
+    graph is necessary midway through your code, create a copy, 
+    for example with one of *networkx*'s in-built methods.
 
-Hashing the outcome of graph normalization to
+Caching the outcome of graph normalization to
 speed up multiple calls to the same graph can be achieved
-as per the following code:
+with the following code:
 
 ```python
 import pygrank as pg
@@ -73,8 +74,6 @@ algorithm = pg.PageRank(alpha=0.85, normalization="col", assume_immutability=Tru
 ranks1 = algorithm(graph, personalization1)
 ranks2 = algorithm(graph, personalization2) # does not re-compute the normalization
 ```
-
-## Caching
 
 Sometimes, many different algorithms are applied on the
 same graph. In this case, to prevent each one
@@ -89,8 +88,8 @@ arguments should be passed to the preprocessor and will be ignored by the
 constructors (what would otherwise happen is that the constructors
 would create a prerpocessor with these arguments).
 
-Basically, when the default value `preprocessor=None` is passed to ranking algorithm
-constructors, these create a new preprocessing instance
+Basically, when the default value `preprocessor=None` is passed to ranking 
+algorithm constructors, these create a new preprocessing instance
 with the `normalization`, `renormalization` and `assume_immutability`
 values passed
 to their constructor. These two arguments are completely ignored
@@ -113,10 +112,10 @@ ranks2 = algorithm2(graph, personalization2) # does not re-compute the normaliza
 ```
 
 !!! info
-    When benchmarking in the above code you can call `pre(graph)`
-    before the first `rank(...)` call to make sure that that call
+    if you perform running time benchmarks using some variation of above code,
+    call `pre(graph)` before the first `rank(...)` to make sure that that call
     does not also perform the first normalization whose outcome will
-    be hashed and immediately retrieved by subsequent calls.
+    be cached and immediately retrieved by subsequent calls.
 
 
 ## Cross-origin resources

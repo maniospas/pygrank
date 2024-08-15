@@ -8,7 +8,7 @@ consider starring it on [github](https://github.com/MKLab-ITI/pygrank).
   <div class="card-body">
     <h5 class="card-title">Datacentric</h5>
     <p class="card-text">Graph signals are both arrays and dictionaries. 
-    Create them easily with many patterns.</p>
+    Create them with simple patterns tailored to your data.</p>
   </div>
 </div>
 
@@ -16,7 +16,7 @@ consider starring it on [github](https://github.com/MKLab-ITI/pygrank).
 <div class="card" style="width: 18rem;">
   <div class="card-body">
     <h5 class="card-title">Big & Fast</h5>
-    <p class="card-text">Process large graphs in efficient backends with optimized scalable algorithms.</p>
+    <p class="card-text">Process large graphs with efficient backends and optimized scalable algorithms.</p>
   </div>
 </div>
 
@@ -25,7 +25,7 @@ consider starring it on [github](https://github.com/MKLab-ITI/pygrank).
 <div class="card" style="width: 18rem;">
   <div class="card-body">
     <h5 class="card-title">Modular</h5>
-    <p class="card-text">Combine graph filters with multiple postprocessors
+    <p class="card-text">Combine graph filters with multiple postprocessors (even some that adjust the filters)
     through a seamless pipeline.</p>
   </div>
 </div>
